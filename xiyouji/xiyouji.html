@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《西游记第一章》增强阅读器</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #8B4513;
+            margin-bottom: 30px;
+        }
+        
+        .poem-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .poem-line {
+            margin-bottom: 15px;
+            line-height: 1.8;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .char-container {
+            position: relative;
+            margin: 0 2px;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .char {
+            font-size: 40px;
+            display: block;
+        }
+        
+        .pinyin {
+            font-size: 16px;
+            color: #E74C3C;
+            display: none;
+            position: absolute;
+            top: -18px;
+            left: 0;
+            right: 0;
+        }
+        
+        .translation {
+            font-size: 12px;
+            color: #3498DB;
+            display: none;
+            position: absolute;
+            bottom: -18px;
+            left: 0;
+            right: 0;
+        }
+        
+        .line-controls {
+            margin-left: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 2px 5px;
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: .7rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #A0522D;
+        }
+        
+        .status-bar {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #eee;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f8f8;
+            border-left: 4px solid #8B4513;
+        }
+  #translationCard {
+    position: fixed;  /* fixed für viewport-bezug */
+    background: #f0f0f0;
+    border: 1px solid #aaa;
+    padding: 2rem 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: none;
+    max-width: 280px;
+    font-size: 20px;
+    z-index: 10000;
+
+    /* zentrieren */
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+  }
+#translationCard .close-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  color: #999;
+  cursor: pointer;
+}
+
+  #translationCard button:hover {
+    background-color: #333
+  }
+    </style>
+</head>
+<body>
+    <h1>《春夜喜雨》增强阅读器</h1>
+        <select id="languageSelect">
+    <option value="en">English</option>
+  <option value="de">Deutsch</option>
+  <option value="fr">Français</option>
+</select>
+    <div class="poem-container" id="poemContainer">
+        <!-- 诗句将通过JavaScript动态生成 -->
+    </div>
+    
+    <div class="status-bar" id="statusBar">就绪</div>
+    
+    <div id="translationCard"></div>
+
+
+    <div class="instructions">
+        <h3>使用说明：</h3>
+        <p>1. 点击汉字 - 第一次显示拼音，第二次朗读发音，第三次显示英文翻译</p>
+        <p>2. 每行诗句后的按钮可以朗读整句或显示整句翻译</p>
+    </div>
+
+    <script>
+        const translationCard = document.getElementById('translationCard');
+        // 诗歌文本
+        const poemText = `话表三藏师徒到镇海禅林寺，
+        众僧相见，
+        安排斋供。
+        四众食毕，
+        那女子也得些食力。
+        渐渐天昏，
+        方丈里点起灯来，
+        众僧一则是问唐僧取经来历，
+        二则是贪看那女子，
+        都攒攒簇簇，
+        排列灯下。
+ 
+三藏对那初见的喇嘛僧道：
+“院主，
+明日离了宝山，
+西去的路途如何？”
+那僧双膝跪下，
+慌得长老一把扯住道：
+“院主请起，
+我问你个路程，
+你为何行礼？”
+那僧道：
+“老师父明日西行，
+路途平正，
+不须费心。
+只是眼下有件事儿不尴魀，
+一进门就要说，
+恐怕冒犯洪威，
+却才斋罢，
+方敢大胆奉告：
+老师东来，
+路遥辛苦，
+都在小和尚房中安歇甚好；
+只是这位女菩萨，
+不方便，
+不知请他那里睡好。”
+三藏道：
+“院主，
+你不要生疑，
+说我师徒们有甚邪意。
+早间打黑松林过，
+撞见这个女子绑在树上。
+小徒孙悟空不肯救他，
+是我发菩提心，
+将他救了，
+到此随院主送他那里睡去。”
+那僧谢道：
+“既老师宽厚，
+请他到天王殿里，
+就在天王爷爷身后，
+安排个草铺，
+教他睡罢。”
+三藏道：
+“甚好，甚好。”
+遂此时，
+众小和尚引那女子往殿后睡去。
+长老就在方丈中，
+请众院主自在，
+遂各散去。
+三藏吩咐悟空：
+“辛苦了，
+早睡早起！”
+遂一处都睡了，
+不敢离侧，
+护着师父。
+渐入夜深，
+正是那：
+玉兔高升万籁宁，
+天街寂静断人行。
+银河耿耿星光灿，
+鼓发谯楼趱换更。`;
+  const baseInfos = {
+    '禹': "Legendary Chinese emperor, known for controlling floods",
+    '之': "A possessive particle, equivalent to 'of'",
+    '力': "Power, strength",
+    // ... hier weitere Infos ergänzen
+  };
+        // 翻译数据 (示例)
+const translations_de = {}
+const translations_fr = {
+}
+const translations_en = {
+    // Paragraph 1
+    "话": "story",
+    "表": "tells",
+    "三": "three",
+    "藏": "tripitaka",
+    "师": "master",
+    "徒": "disciples",
+    "到": "arrived",
+    "镇": "pacify",
+    "海": "sea",
+    "禅": "zen",
+    "林": "forest",
+    "寺": "temple",
+    "，": ",",
+    "众": "many",
+    "僧": "monks",
+    "相": "mutually",
+    "见": "met",
+    "，": ",",
+    "安": "arranged",
+    "排": "prepared",
+    "斋": "vegetarian",
+    "供": "offerings",
+    "。": ".",
+    
+    "四": "four",
+    "众": "travelers",
+    "食": "ate",
+    "毕": "finished",
+    "，": ",",
+    "那": "that",
+    "女": "female",
+    "子": "person",
+    "也": "also",
+    "得": "gained",
+    "些": "some",
+    "食": "food",
+    "力": "strength",
+    "。": ".",
+    
+    "渐": "gradually",
+    "渐": "gradually",
+    "天": "sky",
+    "昏": "darkened",
+    "，": ",",
+    "方": "abbot",
+    "丈": "quarters",
+    "里": "inside",
+    "点": "lit",
+    "起": "up",
+    "灯": "lamps",
+    "来": "come",
+    "，": ",",
+    "众": "many",
+    "僧": "monks",
+    "一": "first",
+    "则": "reason",
+    "是": "was",
+    "问": "ask",
+    "唐": "tang",
+    "僧": "monk",
+    "取": "fetch",
+    "经": "scriptures",
+    "来": "come",
+    "历": "story",
+    "，": ",",
+    "二": "second",
+    "则": "reason",
+    "是": "was",
+    "贪": "covet",
+    "看": "look",
+    "那": "that",
+    "女": "female",
+    "子": "person",
+    "，": ",",
+    "都": "all",
+    "攒": "cluster",
+    "攒": "cluster",
+    "簇": "gather",
+    "簇": "gather",
+    "，": ",",
+    "排": "arrange",
+    "列": "line",
+    "灯": "lamp",
+    "下": "under",
+    "。": ".",
+    
+    // Paragraph 2
+    "三": "three",
+    "藏": "tripitaka",
+    "对": "to",
+    "那": "that",
+    "初": "first",
+    "见": "meet",
+    "的": "'s",
+    "喇": "lama",
+    "嘛": "monk",
+    "僧": "monk",
+    "道": "said",
+    "：": ":",
+    "“": "\"",
+    "院": "abbot",
+    "主": "master",
+    "，": ",",
+    "明": "tomorrow",
+    "日": "day",
+    "离": "leave",
+    "了": "completed",
+    "宝": "treasure",
+    "山": "mountain",
+    "，": ",",
+    "西": "west",
+    "去": "go",
+    "的": "'s",
+    "路": "road",
+    "途": "path",
+    "如": "how",
+    "何": "what",
+    "？": "?",
+    "”": "\"",
+    
+    // ... (continuing this pattern for all remaining characters)
+    
+    // Final poetic lines
+    "玉": "jade",
+    "兔": "rabbit",
+    "高": "high",
+    "升": "rises",
+    "万": "ten-thousand",
+    "籁": "sounds",
+    "宁": "still",
+    "，": ",",
+    "天": "heaven",
+    "街": "street",
+    "寂": "silent",
+    "静": "quiet",
+    "断": "cut-off",
+    "人": "people",
+    "行": "walk",
+    "。": ".",
+    "银": "silver",
+    "河": "river",
+    "耿": "bright",
+    "耿": "bright",
+    "星": "star",
+    "光": "light",
+    "灿": "brilliant",
+    "，": ",",
+    "鼓": "drum",
+    "发": "sound",
+    "谯": "watchtower",
+    "楼": "tower",
+    "趱": "hurry",
+    "换": "change",
+    "更": "watch",
+    "。": "."
+};
+
+
+
+
+
+        // 初始化语音合成
+        const synth = window.speechSynthesis;
+        let utterance = null;
+        
+        // 状态跟踪
+        const charStates = {};
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderPoem();
+        });
+        
+        // 渲染诗歌
+        function renderPoem() {
+            const poemContainer = document.getElementById('poemContainer');
+            const lines = poemText.split('\n');
+            
+            lines.forEach(line => {
+                const lineDiv = document.createElement('div');
+                lineDiv.className = 'poem-line';
+                
+                // 处理每个字符
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    // 跳过空格
+                    if (char.trim() === '') {
+                        const spaceSpan = document.createElement('span');
+                        spaceSpan.textContent = ' ';
+                        lineDiv.appendChild(spaceSpan);
+                        continue;
+                    }
+                    
+                    // 创建字符容器
+                    const charContainer = document.createElement('div');
+                    charContainer.className = 'char-container';
+                    
+                    // 创建字符显示
+                    const charSpan = document.createElement('span');
+                    charSpan.className = 'char';
+                    charSpan.textContent = char;
+                    
+                    // 创建拼音显示
+                    const pinyinSpan = document.createElement('span');
+                    pinyinSpan.className = 'pinyin';
+                    
+                    // 创建翻译显示
+                    const transSpan = document.createElement('span');
+                    transSpan.className = 'translation';
+                    
+                    // 添加到容器
+                    charContainer.appendChild(pinyinSpan);
+                    charContainer.appendChild(charSpan);
+                    charContainer.appendChild(transSpan);
+                    
+                    // 添加点击事件
+                    charContainer.addEventListener('click', () => handleCharClick(char, pinyinSpan, transSpan));
+                    
+                    // 添加到行
+                    lineDiv.appendChild(charContainer);
+                }
+                
+                // 添加行控制按钮
+                const controlsDiv = document.createElement('div');
+                controlsDiv.className = 'line-controls';
+                
+                const readBtn = document.createElement('button');
+                readBtn.textContent = '朗读';
+                readBtn.addEventListener('click', () => readLine(line));
+                
+                const transBtn = document.createElement('button');
+                transBtn.textContent = '翻译';
+                transBtn.addEventListener('click', () => showLineTranslation(line));
+                
+                controlsDiv.appendChild(readBtn);
+                controlsDiv.appendChild(transBtn);
+                lineDiv.appendChild(controlsDiv);
+                
+                // 添加到容器
+                poemContainer.appendChild(lineDiv);
+            });
+        }
+        
+        // 处理字符点击
+        function handleCharClick(char, pinyinSpan, transSpan) {
+            const charId = `${char}-${pinyinSpan.id}`; // 创建唯一标识
+            
+            // 初始化状态
+            if (!charStates[charId]) {
+                charStates[charId] = 0;
+            }
+            
+            // 更新状态
+            charStates[charId]++;
+            if (charStates[charId] > 3) {
+                charStates[charId] = 1;
+            }
+            
+            // 根据状态执行操作
+            switch (charStates[charId]) {
+                case 1: // 显示拼音
+                    showPinyin(char, pinyinSpan);
+                    updateStatus(`显示拼音: ${char}`);
+                    break;
+                case 2: // 朗读字符
+                    readChar(char);
+                    updateStatus(`朗读字符: ${char}`);
+                    break;
+                case 3: // 显示翻译
+                    showTranslation(char, transSpan);
+                    updateStatus(`显示翻译: ${char}`);
+                    break;
+            }
+        }
+        
+        // 显示拼音
+        function showPinyin(char, pinyinSpan) {
+            // 这里应该调用拼音库，简化处理
+            const pinyinMap = {
+    
+  "话": "huà",
+  "表": "biǎo",
+  "三": "sān",
+  "藏": "zàng",
+  "师": "shī",
+  "徒": "tú",
+  "到": "dào",
+  "镇": "zhèn",
+  "海": "hǎi",
+  "禅": "chán",
+  "林": "lín",
+  "寺": "sì",
+  "众": "zhòng",
+  "僧": "sēng",
+  "相": "xiāng",
+  "见": "jiàn",
+  "安": "ān",
+  "排": "pái",
+  "斋": "zhāi",
+  "供": "gòng",
+  "四": "sì",
+  "众": "zhòng",
+  "食": "shí",
+  "毕": "bì",
+  "那": "nà",
+  "女": "nǚ",
+  "子": "zǐ",
+  "也": "yě",
+  "得": "dé",
+  "些": "xiē",
+  "食": "shí",
+  "力": "lì",
+  "渐": "jiàn",
+  "渐": "jiàn",
+  "天": "tiān",
+  "昏": "hūn",
+  "方": "fāng",
+  "丈": "zhàng",
+  "里": "lǐ",
+  "点": "diǎn",
+  "起": "qǐ",
+  "灯": "dēng",
+  "来": "lái",
+  "众": "zhòng",
+  "僧": "sēng",
+  "一": "yī",
+  "则": "zé",
+  "是": "shì",
+  "问": "wèn",
+  "唐": "táng",
+  "僧": "sēng",
+  "取": "qǔ",
+  "经": "jīng",
+  "来": "lái",
+  "历": "lì",
+  "二": "èr",
+  "则": "zé",
+  "是": "shì",
+  "贪": "tān",
+  "看": "kàn",
+  "那": "nà",
+  "女": "nǚ",
+  "子": "zǐ",
+  "都": "dōu",
+  "攒": "cuán",
+  "攒": "cuán",
+  "簇": "cù",
+  "簇": "cù",
+  "排": "pái",
+  "列": "liè",
+  "灯": "dēng",
+  "下": "xià",
+  "三": "sān",
+  "藏": "zàng",
+  "对": "duì",
+  "那": "nà",
+  "初": "chū",
+  "见": "jiàn",
+  "的": "de",
+  "喇": "lǎ",
+  "嘛": "ma",
+  "僧": "sēng",
+  "道": "dào",
+  "院": "yuàn",
+  "主": "zhǔ",
+  "明": "míng",
+  "日": "rì",
+  "离": "lí",
+  "了": "le",
+  "宝": "bǎo",
+  "山": "shān",
+  "西": "xī",
+  "去": "qù",
+  "的": "de",
+  "路": "lù",
+  "途": "tú",
+  "如": "rú",
+  "何": "hé",
+  "那": "nà",
+  "僧": "sēng",
+  "双": "shuāng",
+  "膝": "xī",
+  "跪": "guì",
+  "下": "xià",
+  "慌": "huāng",
+  "得": "dé",
+  "长": "zhǎng",
+  "老": "lǎo",
+  "一": "yī",
+  "把": "bǎ",
+  "扯": "chě",
+  "住": "zhù",
+  "道": "dào",
+  "院": "yuàn",
+  "主": "zhǔ",
+  "请": "qǐng",
+  "起": "qǐ",
+  "我": "wǒ",
+  "问": "wèn",
+  "你": "nǐ",
+  "个": "gè",
+  "路": "lù",
+  "程": "chéng",
+  "你": "nǐ",
+  "为": "wèi",
+  "何": "hé",
+  "行": "xíng",
+  "礼": "lǐ",
+  "那": "nà",
+  "僧": "sēng",
+  "道": "dào",
+  "老": "lǎo",
+  "师": "shī",
+  "父": "fù",
+  "明": "míng",
+  "日": "rì",
+  "西": "xī",
+  "行": "xíng",
+  "路": "lù",
+  "途": "tú",
+  "平": "píng",
+  "正": "zhèng",
+  "不": "bù",
+  "须": "xū",
+  "费": "fèi",
+  "心": "xīn",
+  "只": "zhǐ",
+  "是": "shì",
+  "眼": "yǎn",
+  "下": "xià",
+  "有": "yǒu",
+  "件": "jiàn",
+  "事": "shì",
+  "儿": "ér",
+  "不": "bù",
+  "尴": "gān",
+  "魀": "guǐ",
+  "一": "yī",
+  "进": "jìn",
+  "门": "mén",
+  "就": "jiù",
+  "要": "yào",
+  "说": "shuō",
+  "恐": "kǒng",
+  "怕": "pà",
+  "冒": "mào",
+  "犯": "fàn",
+  "洪": "hóng",
+  "威": "wēi",
+  "却": "què",
+  "才": "cái",
+  "斋": "zhāi",
+  "罢": "bà",
+  "方": "fāng",
+  "敢": "gǎn",
+  "大": "dà",
+  "胆": "dǎn",
+  "奉": "fèng",
+  "告": "gào",
+  "东": "dōng",
+  "来": "lái",
+  "遥": "yáo",
+  "辛": "xīn",
+  "苦": "kǔ",
+  "都": "dōu",
+  "在": "zài",
+  "小": "xiǎo",
+  "和": "hé",
+  "尚": "shàng",
+  "房": "fáng",
+  "中": "zhōng",
+  "安": "ān",
+  "歇": "xiē",
+  "甚": "shèn",
+  "好": "hǎo",
+  "这": "zhè",
+  "位": "wèi",
+  "女": "nǚ",
+  "菩": "pú",
+  "萨": "sà",
+  "方": "fāng",
+  "便": "biàn",
+  "知": "zhī",
+  "请": "qǐng",
+  "他": "tā",
+  "那": "nà",
+  "里": "lǐ",
+  "睡": "shuì",
+  "三": "sān",
+  "藏": "zàng",
+  "道": "dào",
+  "院": "yuàn",
+  "主": "zhǔ",
+  "你": "nǐ",
+  "不": "bù",
+  "要": "yào",
+  "生": "shēng",
+  "疑": "yí",
+  "说": "shuō",
+  "我": "wǒ",
+  "师": "shī",
+  "徒": "tú",
+  "们": "men",
+  "有": "yǒu",
+  "甚": "shèn",
+  "邪": "xié",
+  "意": "yì",
+  "早": "zǎo",
+  "间": "jiān",
+  "打": "dǎ",
+  "黑": "hēi",
+  "松": "sōng",
+  "林": "lín",
+  "过": "guò",
+  "撞": "zhuàng",
+  "见": "jiàn",
+  "这": "zhè",
+  "个": "gè",
+  "女": "nǚ",
+  "子": "zǐ",
+  "绑": "bǎng",
+  "在": "zài",
+  "树": "shù",
+  "上": "shàng",
+  "小": "xiǎo",
+  "徒": "tú",
+  "孙": "sūn",
+  "悟": "wù",
+  "空": "kōng",
+  "不": "bù",
+  "肯": "kěn",
+  "救": "jiù",
+  "他": "tā",
+  "是": "shì",
+  "我": "wǒ",
+  "发": "fā",
+  "菩": "pú",
+  "提": "tí",
+  "心": "xīn",
+  "将": "jiāng",
+  "他": "tā",
+  "救": "jiù",
+  "了": "le",
+  "到": "dào",
+  "此": "cǐ",
+  "随": "suí",
+  "院": "yuàn",
+  "主": "zhǔ",
+  "送": "sòng",
+  "他": "tā",
+  "那": "nà",
+  "里": "lǐ",
+  "睡": "shuì",
+  "去": "qù",
+  "那": "nà",
+  "僧": "sēng",
+  "谢": "xiè",
+  "道": "dào",
+  "既": "jì",
+  "老": "lǎo",
+  "师": "shī",
+  "宽": "kuān",
+  "厚": "hòu",
+  "请": "qǐng",
+  "他": "tā",
+  "到": "dào",
+  "天": "tiān",
+  "王": "wáng",
+  "殿": "diàn",
+  "里": "lǐ",
+  "就": "jiù",
+  "在": "zài",
+  "天": "tiān",
+  "王": "wáng",
+  "爷": "yé",
+  "爷": "yé",
+  "身": "shēn",
+  "后": "hòu",
+  "安": "ān",
+  "排": "pái",
+  "个": "gè",
+  "草": "cǎo",
+  "铺": "pù",
+  "教": "jiào",
+  "他": "tā",
+  "睡": "shuì",
+  "罢": "bà",
+  "三": "sān",
+  "藏": "zàng",
+  "道": "dào",
+  "甚": "shèn",
+  "好": "hǎo",
+  "遂": "suì",
+  "此": "cǐ",
+  "时": "shí",
+  "众": "zhòng",
+  "小": "xiǎo",
+  "和": "hé",
+  "尚": "shàng",
+  "引": "yǐn",
+  "那": "nà",
+  "女": "nǚ",
+  "子": "zǐ",
+  "往": "wǎng",
+  "殿": "diàn",
+  "后": "hòu",
+  "睡": "shuì",
+  "去": "qù",
+  "长": "zhǎng",
+  "老": "lǎo",
+  "就": "jiù",
+  "在": "zài",
+  "方": "fāng",
+  "丈": "zhàng",
+  "中": "zhōng",
+  "请": "qǐng",
+  "众": "zhòng",
+  "院": "yuàn",
+  "主": "zhǔ",
+  "自": "zì",
+  "在": "zài",
+  "遂": "suì",
+  "各": "gè",
+  "散": "sàn",
+  "去": "qù",
+  "三": "sān",
+  "藏": "zàng",
+  "吩": "fēn",
+  "咐": "fù",
+  "悟": "wù",
+  "空": "kōng",
+  "辛": "xīn",
+  "苦": "kǔ",
+  "了": "le",
+  "早": "zǎo",
+  "睡": "shuì",
+  "起": "qǐ",
+  "遂": "suì",
+  "一": "yī",
+  "处": "chù",
+  "都": "dōu",
+  "不": "bù",
+  "敢": "gǎn",
+  "离": "lí",
+  "侧": "cè",
+  "护": "hù",
+  "着": "zhe",
+  "师": "shī",
+  "父": "fù",
+  "渐": "jiàn",
+  "入": "rù",
+  "夜": "yè",
+  "深": "shēn",
+  "正": "zhèng",
+  "是": "shì",
+  "那": "nà",
+  "玉": "yù",
+  "兔": "tù",
+  "高": "gāo",
+  "升": "shēng",
+  "万": "wàn",
+  "籁": "lài",
+  "宁": "níng",
+  "天": "tiān",
+  "街": "jiē",
+  "寂": "jì",
+  "静": "jìng",
+  "断": "duàn",
+  "人": "rén",
+  "行": "xíng",
+  "银": "yín",
+  "河": "hé",
+  "耿": "gěng",
+  "星": "xīng",
+  "光": "guāng",
+  "灿": "càn",
+  "鼓": "gǔ",
+  "发": "fā",
+  "谯": "qiáo",
+  "楼": "lóu",
+  "趱": "zǎn",
+  "换": "huàn",
+  "更": "gēng"
+
+
+
+};
+
+
+            const py = pinyinMap[char] || "?";
+            pinyinSpan.textContent = py;
+            pinyinSpan.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                pinyinSpan.style.display = 'none';
+                // 重置状态以便下次点击
+                const charId = `${char}-${pinyinSpan.id}`;
+                charStates[charId] = 0;
+            }, 8000);
+        }
+        
+        // 朗读字符
+        function readChar(char) {
+    if (synth.speaking) {
+        synth.cancel();
+    }
+    
+    utterance = new SpeechSynthesisUtterance(char);
+    utterance.lang = 'zh-CN';
+    utterance.rate = 0.7; // 设置为正常速度的70%
+    synth.speak(utterance);
+}
+        
+        // 显示翻译
+function showTranslation(char, transSpan) {
+    const lang = document.getElementById('languageSelect').value;
+
+    const translationCard = document.getElementById('translationCard');
+
+    const translateMap = {
+        de: translations_de[char] || "Keine Übersetzung",
+        fr: translations_fr[char] || "Pas de traduction",
+        en: translations_en[char] || "No translation"
+    }
+    const translate = translateMap[lang]
+    translationCard.innerHTML = `
+        <button class="close-btn" onclick="closeTranslationCard()">×</button>
+        <strong style="font-size: 18px;">汉字：</strong> ${char}<br>
+        <strong style="font-size: 18px;">翻译: </strong> ${translate}
+    `;
+
+    translationCard.style.display = 'block';
+
+    const charId = `${char}-${transSpan.id}`;
+    charStates[charId] = 0;
+}
+
+
+function closeTranslationCard() {
+  translationCard.style.display = 'none';
+}
+        
+        // 朗读整行
+        function readLine(line) {
+    if (synth.speaking) {
+        synth.cancel();
+    }
+    
+    utterance = new SpeechSynthesisUtterance(line);
+    utterance.lang = 'zh-CN';
+    utterance.rate = 0.6; // 设置为正常速度的60%，更慢一些
+    synth.speak(utterance);
+    
+    updateStatus(`朗读: ${line}`);
+}
+
+        
+        const tianwen_translation_map_fr = {}
+        const tianwen_translation_map_de = {}
+        const tianwen_translation_map_en = {
+    // Opening narrative
+    "话表三藏师徒到镇海禅林寺，": "The story recounts Tang Monk and disciples arriving at Sea-Calming Monastery,",
+    "众僧相见，": "Monks welcomed them,",
+    "安排斋供。": "And prepared vegetarian offerings.",
+    
+    // Meal scene
+    "四众食毕，": "When the four finished eating,",
+    "那女子也得些食力。": "The maiden too regained strength.",
+    
+    // Evening scene
+    "渐渐天昏，": "As twilight deepened,",
+    "方丈里点起灯来，": "Lamps were lit in abbot's quarters,",
+    "众僧一则是问唐僧取经来历，": "Monks clustered—partly asking of the scripture quest,",
+    "二则是贪看那女子，": "Partly gazing at the maiden,",
+    "都攒攒簇簇，": "All pressing together,",
+    "排列灯下。": "Arrayed beneath the lamps.",
+    
+    // Dialogue - Tripitaka
+    "三藏对那初见的喇嘛僧道：": "Tripitaka asked the lama monk:",
+    "“院主，": "\"Abbot,",
+    "明日离了宝山，": "When we leave your blessed mountain tomorrow,",
+    "西去的路途如何？": "How fares the westward road?\"",
+    
+    // Monk's reaction
+    "那僧双膝跪下，": "The monk dropped to his knees,",
+    "慌得长老一把扯住道：": "Startling the elder who pulled him up:",
+    "“院主请起，": "\"Abbot please rise,",
+    "我问你个路程，": "I merely asked about the road,",
+    "你为何行礼？": "Why this courtesy?\"",
+    
+    // Monk's explanation
+    "那僧道：": "The monk replied:",
+    "“老师父明日西行，": "\"Venerable One's westward path,",
+    "路途平正，": "Will be smooth,",
+    "不须费心。": "Requiring no concern.",
+    "只是眼下有件事儿不尴魀，": "Only there's an awkward matter—",
+    "一进门就要说，": "I wished to mention upon arrival,",
+    "恐怕冒犯洪威，": "But feared offense,",
+    "却才斋罢，": "Now after meal,",
+    "方敢大胆奉告：": "I dare speak frankly:",
+    "老师东来，": "You teachers from east,",
+    "路遥辛苦，": "Weary from journey,",
+    "都在小和尚房中安歇甚好；": "May rest well in novices' quarters;",
+    "只是这位女菩萨，": "But this bodhisattva-maiden,",
+    "不方便，": "Presents difficulties—",
+    "不知请他那里睡好。": "Where might she properly sleep?\"",
+    
+    // Tripitaka's response
+    "三藏道：": "Tripitaka answered:",
+    "“院主，": "\"Abbot,",
+    "你不要生疑，": "Don't suspect,",
+    "说我师徒们有甚邪意。": "That we harbor improper intent.",
+    "早间打黑松林过，": "Passing Black Pine Forest at dawn,",
+    "撞见这个女子绑在树上。": "We found her bound to a tree.",
+    "小徒孙悟空不肯救他，": "Though Wukong refused rescue,",
+    "是我发菩提心，": "I acted with bodhi-mind,",
+    "将他救了，": "And saved her,",
+    "到此随院主送他那里睡去。": "Now we follow your lodging arrangements.\"",
+    
+    // Resolution
+    "那僧谢道：": "The monk thanked:",
+    "“既老师宽厚，": "\"Since you're so gracious,",
+    "请他到天王殿里，": "Let her sleep in Deva Kings' Hall,",
+    "就在天王爷爷身后，": "Behind the statues,",
+    "安排个草铺，": "On arranged straw bedding,",
+    "教他睡罢。": "There may she rest.\"",
+    "三藏道：": "Tripitaka said:",
+    "“甚好，": "\"Very good,",
+    "甚好。": "Very good.\"",
+    
+    // Night arrangements
+    "遂此时，": "Thereupon,",
+    "众小和尚引那女子往殿后睡去。": "Novices led her to sleep behind hall.",
+    "长老就在方丈中，": "The elder retired to abbot's quarters,",
+    "请众院主自在，": "Bade other monks disperse,",
+    "遂各散去。": "And all departed.",
+    
+    // Final instructions
+    "三藏吩咐悟空：": "Tripitaka instructed Wukong:",
+    "“辛苦了，": "\"You've labored,",
+    "早睡早起！": "Sleep early to rise early!\"",
+    "遂一处都睡了，": "Thus they slept together,",
+    "不敢离侧，": "Not leaving his side,",
+    "护着师父。": "Guarding their master.",
+    
+    // Poetic description
+    "渐入夜深，": "As night deepened,",
+    "正是那：": "Behold:",
+    "玉兔高升万籁宁，": "Jade Rabbit ascends in silence deep,",
+    "天街寂静断人行。": "Heaven's streets still where none walk or creep.",
+    "银河耿耿星光灿，": "Silver River gleams with starry light,",
+    "鼓发谯楼趱换更。": "Watchtower drums mark the night's new height."
+};
+
+function showLineTranslation(line) {
+    const lang = document.getElementById('languageSelect').value;
+      const translatedMap = {
+        de: tianwen_translation_map_de,
+        fr: tianwen_translation_map_fr,
+        en: tianwen_translation_map_en
+    };
+    const translatedLine = translatedMap[lang]?.[line] || "（keine Übersetzung gefunden）";
+    const translationCard = document.getElementById('translationCard');
+
+    translationCard.innerHTML = `
+        <button class="close-btn" onclick="closeTranslationCard()">×</button>
+        <strong style="font-size: 18px;">原文：</strong><br>
+        <div style="margin-bottom: 10px;">${line}</div>
+        <strong style="font-size: 18px;">翻译：</strong><br>
+        <div>${translatedLine}</div>
+    `;
+
+    translationCard.style.display = 'block';
+
+    updateStatus(`显示翻译: ${line.substring(0, 15)}...`);
+}
+        
+        // 更新状态栏
+        function updateStatus(message) {
+            document.getElementById('statusBar').textContent = message;
+        }
+    </script>
+</body>
+</html>
