@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中文辅助阅读器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        h1 {
+            text-align: center;
+            height: 3rem;
+        }
+        .text-box {
+            display: flex;
+            flex-direction: column;
+        }
+        .text-box a {
+            font-size: 2rem;
+            margin: 1rem;
+            padding: 1rem;
+            color: #000;
+        }
+        .text-box a:hover {
+            color: #888;
+        }
+        h2 {
+            margin: 1rem;
+            padding: 1rem;
+            font-size: 2rem;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .container_xiyouji {
+            display: none;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        .active {
+            display: flex;
+        }
+        .open i {
+            transition: transform 0.3s ease;
+        }
+
+        .container_xiyouji.active ~ .open i {
+            transform: rotate(-180deg);
+        }
+        .rotated {
+            transform: rotate(-180deg);
+            transition: transform 0.3s ease;
+        }
+
+    </style>
+</head>
+<body>
+    <h1 class="legend">中文辅助阅读器</h1>
+    <div class="container">
+        <div class="text-box">
+            <h2 class="open">西游记<i class="fa-solid fa-caret-down"></i></h2>
+    
+            <div class="container_xiyouji">
+                <a href="xiyouji1_1/index.html">西游记第一章第一节</a>
+                <a href="xiyouji1_2/index.html">西游记第一章第二节</a>
+            </div>
+    
+    
+    
+        </div>
+        <div class="text-box">
+            <h2 class="open">诗词<i class="fa-solid fa-caret-down"></i></h2>
+    
+            <div class="container_xiyouji">
+                <a href="chunyexiyu/index.html">春夜喜雨</a>
+            </div>
+    
+    
+    
+        </div>
+    <div class="text-box"></div>
+</div>
+ <script>
+// Für alle .open-Buttons
+document.querySelectorAll(".open").forEach((openBtn) => {
+    openBtn.addEventListener("click", () => {
+        const textBox = openBtn.closest(".text-box");
+        const container = textBox.querySelector(".container_xiyouji");
+
+        container.classList.toggle("active");
+
+        // Optional: caret-icon drehen
+        const icon = openBtn.querySelector("i");
+        icon.classList.toggle("rotated");
+    });
+});
+
+
+ </script>
+
+</body>
+</html>
