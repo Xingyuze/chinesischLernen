@@ -772,128 +772,6 @@ const translations_en = {
   帘: "curtain",
 };
 
-// 初始化语音合成
-const synth = window.speechSynthesis;
-let utterance = null;
-
-// 状态跟踪
-const charStates = {};
-
-// 页面加载完成后初始化
-document.addEventListener("DOMContentLoaded", function () {
-  renderPoem();
-});
-
-// 渲染诗歌
-function renderPoem() {
-  const poemContainer = document.getElementById("poemContainer");
-  const lines = poemText.split("\n");
-
-  lines.forEach((line) => {
-    const lineDiv = document.createElement("div");
-    lineDiv.className = "poem-line";
-
-    // 处理每个字符
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-
-      // 跳过空格
-      if (char.trim() === "") {
-        const spaceSpan = document.createElement("span");
-        spaceSpan.textContent = " ";
-        lineDiv.appendChild(spaceSpan);
-        continue;
-      }
-
-      // 创建字符容器
-      const charContainer = document.createElement("div");
-      charContainer.className = "char-container";
-
-      // 创建字符显示
-      const charSpan = document.createElement("span");
-      charSpan.className = "char";
-      charSpan.textContent = char;
-
-      // 创建拼音显示
-      const pinyinSpan = document.createElement("span");
-      pinyinSpan.className = "pinyin";
-
-      // 创建翻译显示
-      const transSpan = document.createElement("span");
-      transSpan.className = "translation";
-
-      // 添加到容器
-      charContainer.appendChild(pinyinSpan);
-      charContainer.appendChild(charSpan);
-      charContainer.appendChild(transSpan);
-
-      // 添加点击事件
-      charContainer.addEventListener("click", () =>
-        handleCharClick(char, pinyinSpan, transSpan)
-      );
-
-      // 添加到行
-      lineDiv.appendChild(charContainer);
-    }
-
-    // 添加行控制按钮
-    const controlsDiv = document.createElement("div");
-    controlsDiv.className = "line-controls";
-
-    const readBtn = document.createElement("button");
-    readBtn.textContent = "朗读";
-    readBtn.addEventListener("click", () => readLine(line));
-
-    const transBtn = document.createElement("button");
-    transBtn.textContent = "翻译";
-    transBtn.addEventListener("click", () => showLineTranslation(line));
-
-    controlsDiv.appendChild(readBtn);
-    controlsDiv.appendChild(transBtn);
-    lineDiv.appendChild(controlsDiv);
-
-    // 添加到容器
-    poemContainer.appendChild(lineDiv);
-  });
-}
-
-// 处理字符点击
-function handleCharClick(char, pinyinSpan, transSpan) {
-  const charId = `${char}-${pinyinSpan.id}`; // 创建唯一标识
-
-  // 初始化状态
-  if (!charStates[charId]) {
-    charStates[charId] = 0;
-  }
-
-  // 更新状态
-  charStates[charId]++;
-  if (charStates[charId] > 3) {
-    charStates[charId] = 1;
-  }
-
-  // 根据状态执行操作
-  switch (charStates[charId]) {
-    case 1: // 朗读字符
-      readChar(char);
-      updateStatus(`朗读字符: ${char}`);
-      break;
-    case 2: // 显示拼音
-      showPinyin(char, pinyinSpan);
-      updateStatus(`显示拼音: ${char}`);
-      break;
-    case 3: // 显示翻译
-      showTranslation(char, transSpan);
-      updateStatus(`显示翻译: ${char}`);
-      break;
-  }
-}
-
-// 显示拼音
-function showPinyin(char, pinyinSpan) {
-  // 这里应该调用拼音库，简化处理
-  
-
 const pinyinMap = {
   那: "nà",
   猴: "hóu",
@@ -1125,75 +1003,6 @@ const pinyinMap = {
   帘: "lián",
 };
 
-  const py = pinyinMap[char] || "?";
-  pinyinSpan.textContent = py;
-  pinyinSpan.style.display = "block";
-
-  // 3秒后自动隐藏
-  setTimeout(() => {
-    pinyinSpan.style.display = "none";
-    // 重置状态以便下次点击
-    const charId = `${char}-${pinyinSpan.id}`;
-    charStates[charId] = 0;
-  }, 8000);
-}
-
-// 朗读字符
-function readChar(char) {
-  if (synth.speaking) {
-    synth.cancel();
-  }
-
-  utterance = new SpeechSynthesisUtterance(char);
-  utterance.lang = "zh-CN";
-  utterance.rate = 0.7; // 设置为正常速度的70%
-  synth.speak(utterance);
-}
-
-// 显示翻译
-function showTranslation(char, transSpan) {
-  const lang = document.getElementById("languageSelect").value;
-
-  const translationCard = document.getElementById("translationCard");
-
-  const translateMap = {
-    de: translations_de[char] || "Keine Übersetzung",
-    fr: translations_fr[char] || "Pas de traduction",
-    en: translations_en[char] || "No translation",
-  };
-  const translate = translateMap[lang];
-  translationCard.innerHTML = `
-      <button class="close-btn" onclick="closeTranslationCard()">×</button>
-      <strong style="font-size: 18px;">汉字：</strong> ${char}<br>
-      <strong style="font-size: 18px;">翻译: </strong> ${translate}
-  `;
-
-  translationCard.style.display = "block";
-
-  const charId = `${char}-${transSpan.id}`;
-  charStates[charId] = 0;
-}
-
-function closeTranslationCard() {
-  translationCard.style.display = "none";
-}
-
-// 朗读整行
-function readLine(line) {
-  if (synth.speaking) {
-    synth.cancel();
-  }
-
-  utterance = new SpeechSynthesisUtterance(line);
-  utterance.lang = "zh-CN";
-  utterance.rate = 0.6; // 设置为正常速度的60%，更慢一些
-  synth.speak(utterance);
-
-  updateStatus(`朗读: ${line}`);
-}
-
-
-
 const tianwen_translation_map_fr = {
   那猴在山中: "Le singe dans les montagnes",
   却会行走跳跃: "Mais il peut marcher et sauter",
@@ -1272,9 +1081,6 @@ const tianwen_translation_map_fr = {
   镌着花果山福地: "Gravé de la terre de bénédiction des fleurs et des fruits",
   水帘洞洞天: "Ciel de cave à rideaux d'eau",
 };
-
-
-
 
 const tianwen_translation_map_de = {
   那猴在山中: "Der Affe in den Bergen",
@@ -1357,7 +1163,6 @@ const tianwen_translation_map_de = {
   水帘洞洞天: "Wasservorhanghöhle Himmel",
 };
 
-
 const tianwen_translation_map_en = {
   那猴在山中: "The monkey in the mountains",
   却会行走跳跃: "But he can walk and jump",
@@ -1436,6 +1241,201 @@ const tianwen_translation_map_en = {
   镌着花果山福地: "Engraved with the blessing land of flowers and fruits",
   水帘洞洞天: "Water curtain cave sky",
 };
+
+const synth = window.speechSynthesis;
+let utterance = null;
+
+// 状态跟踪
+const charStates = {};
+
+// 页面加载完成后初始化
+document.addEventListener("DOMContentLoaded", function () {
+  renderPoem();
+});
+
+// 渲染诗歌
+function renderPoem() {
+  const poemContainer = document.getElementById("poemContainer");
+  const lines = poemText.split("\n");
+
+  lines.forEach((line) => {
+    const lineDiv = document.createElement("div");
+    lineDiv.className = "poem-line";
+
+    // 处理每个字符
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+
+      // 跳过空格
+      if (char.trim() === "") {
+        const spaceSpan = document.createElement("span");
+        spaceSpan.textContent = " ";
+        lineDiv.appendChild(spaceSpan);
+        continue;
+      }
+
+      // 创建字符容器
+      const charContainer = document.createElement("div");
+      charContainer.className = "char-container";
+
+      // 创建字符显示
+      const charSpan = document.createElement("span");
+      charSpan.className = "char";
+      charSpan.textContent = char;
+
+      // 创建拼音显示
+      const pinyinSpan = document.createElement("span");
+      pinyinSpan.className = "pinyin";
+
+      // 创建翻译显示
+      const transSpan = document.createElement("span");
+      transSpan.className = "translation";
+
+      // 添加到容器
+      charContainer.appendChild(pinyinSpan);
+      charContainer.appendChild(charSpan);
+      charContainer.appendChild(transSpan);
+
+      // 添加点击事件
+      charContainer.addEventListener("click", () =>
+        handleCharClick(char, pinyinSpan, transSpan)
+      );
+
+      // 添加到行
+      lineDiv.appendChild(charContainer);
+    }
+
+    // 添加行控制按钮
+    const controlsDiv = document.createElement("div");
+    controlsDiv.className = "line-controls";
+
+    const readBtn = document.createElement("button");
+    readBtn.textContent = "朗读";
+    readBtn.addEventListener("click", () => readLine(line));
+
+    const transBtn = document.createElement("button");
+    transBtn.textContent = "翻译";
+    transBtn.addEventListener("click", () => showLineTranslation(line));
+
+    controlsDiv.appendChild(readBtn);
+    controlsDiv.appendChild(transBtn);
+    lineDiv.appendChild(controlsDiv);
+
+    // 添加到容器
+    poemContainer.appendChild(lineDiv);
+  });
+}
+
+// 处理字符点击
+function handleCharClick(char, pinyinSpan, transSpan) {
+  const charId = `${char}-${pinyinSpan.id}`; // 创建唯一标识
+
+  // 初始化状态
+  if (!charStates[charId]) {
+    charStates[charId] = 0;
+  }
+
+  // 更新状态
+  charStates[charId]++;
+  if (charStates[charId] > 3) {
+    charStates[charId] = 1;
+  }
+
+  // 根据状态执行操作
+  switch (charStates[charId]) {
+    case 1: // 朗读字符
+      readChar(char);
+      updateStatus(`朗读字符: ${char}`);
+      break;
+    case 2: // 显示拼音
+      showPinyin(char, pinyinSpan);
+      updateStatus(`显示拼音: ${char}`);
+      break;
+    case 3: // 显示翻译
+      showTranslation(char, transSpan);
+      updateStatus(`显示翻译: ${char}`);
+      break;
+  }
+}
+
+// 显示拼音
+function showPinyin(char, pinyinSpan) {
+  // 这里应该调用拼音库，简化处理
+
+  const py = pinyinMap[char] || "?";
+  pinyinSpan.textContent = py;
+  pinyinSpan.style.display = "block";
+
+  // 3秒后自动隐藏
+  setTimeout(() => {
+    pinyinSpan.style.display = "none";
+    // 重置状态以便下次点击
+    const charId = `${char}-${pinyinSpan.id}`;
+    charStates[charId] = 0;
+  }, 8000);
+}
+
+// 朗读字符
+function readChar(char) {
+  if (synth.speaking) {
+    synth.cancel();
+  }
+
+  utterance = new SpeechSynthesisUtterance(char);
+  utterance.lang = "zh-CN";
+  utterance.rate = 0.7; // 设置为正常速度的70%
+  synth.speak(utterance);
+}
+
+// 显示翻译
+function showTranslation(char, transSpan) {
+  const lang = document.getElementById("languageSelect").value;
+
+  const translationCard = document.getElementById("translationCard");
+
+  const translateMap = {
+    de: translations_de[char] || "Keine Übersetzung",
+    fr: translations_fr[char] || "Pas de traduction",
+    en: translations_en[char] || "No translation",
+  };
+  const translate = translateMap[lang];
+  translationCard.innerHTML = `
+  <div class="card-header">
+    <button class="close-btn" onclick="closeTranslationCard()">×</button>
+  </div>
+  <div class="info-block">
+    <div class="info-label">汉字：</div>
+    <div class="info-content">${char}</div>
+    <div class="info-label">翻译：</div>
+    <div class="info-content">${translate}</div>
+  </div>
+`;
+
+  translationCard.style.display = "block";
+
+  const charId = `${char}-${transSpan.id}`;
+  charStates[charId] = 0;
+}
+
+function closeTranslationCard() {
+  const translationCard = document.getElementById("translationCard");
+  translationCard.style.display = "none";
+}
+
+// 朗读整行
+function readLine(line) {
+  if (synth.speaking) {
+    synth.cancel();
+  }
+
+  utterance = new SpeechSynthesisUtterance(line);
+  utterance.lang = "zh-CN";
+  utterance.rate = 0.6; // 设置为正常速度的60%，更慢一些
+  synth.speak(utterance);
+
+  updateStatus(`朗读: ${line}`);
+}
+
 function showLineTranslation(line) {
   const lang = document.getElementById("languageSelect").value;
   const translatedMap = {
@@ -1448,11 +1448,15 @@ function showLineTranslation(line) {
   const translationCard = document.getElementById("translationCard");
 
   translationCard.innerHTML = `
-<button class="close-btn" onclick="closeTranslationCard()">×</button>
-<strong style="font-size: 18px;">原文：</strong><br>
-<div style="margin-bottom: 10px;">${line}</div>
-<strong style="font-size: 18px;">翻译：</strong><br>
-<div>${translatedLine}</div>
+  <div class="card-header">
+    <button class="close-btn" onclick="closeTranslationCard()">×</button>
+  </div>
+  <div class="info-block">
+    <div class="info-label">原文：</div>
+    <div class="info-content">${line}</div>
+    <div class="info-label">翻译：</div>
+    <div class="info-content">${translatedLine}</div>
+  </div>
 `;
 
   translationCard.style.display = "block";

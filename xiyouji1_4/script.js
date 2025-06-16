@@ -95,6 +95,267 @@ const poemText = `
 痛饮了一日
 `;
 
+const pinyinMap = {
+  美: "měi",
+  猴: "hóu",
+  王: "wáng",
+  享: "xiǎng",
+  乐: "lè",
+  天: "tiān",
+  真: "zhēn",
+  何: "hé",
+  期: "qī",
+  有: "yǒu",
+  三: "sān",
+  五: "wǔ",
+  百: "bǎi",
+  载: "zài",
+  一: "yī",
+  日: "rì",
+  与: "yǔ",
+  群: "qún",
+  喜: "xǐ",
+  宴: "yàn",
+  之: "zhī",
+  间: "jiān",
+  忽: "hū",
+  然: "rán",
+  忧: "yōu",
+  恼: "nǎo",
+  堕: "duò",
+  下: "xià",
+  泪: "lèi",
+  来: "lái",
+  众: "zhòng",
+  慌: "huāng",
+  忙: "máng",
+  罗: "luó",
+  拜: "bài",
+  道: "dào",
+  大: "dà",
+  为: "wèi",
+  烦: "fán",
+  我: "wǒ",
+  虽: "suī",
+  在: "zài",
+  欢: "huān",
+  时: "shí",
+  却: "què",
+  点: "diǎn",
+  儿: "ér",
+  远: "yuǎn",
+  虑: "lǜ",
+  故: "gù",
+  此: "cǐ",
+  又: "yòu",
+  笑: "xiào",
+  好: "hǎo",
+  不: "bù",
+  知: "zhī",
+  足: "zú",
+  等: "děng",
+  会: "huì",
+  仙: "xiān",
+  山: "shān",
+  福: "fú",
+  地: "dì",
+  古: "gǔ",
+  洞: "dòng",
+  神: "shén",
+  州: "zhōu",
+  伏: "fú",
+  麒: "qí",
+  麟: "lín",
+  辖: "xiá",
+  凤: "fèng",
+  凰: "huáng",
+  管: "guǎn",
+  人: "rén",
+  位: "wèi",
+  所: "suǒ",
+  拘: "jū",
+  束: "shù",
+  自: "zì",
+  由: "yóu",
+  乃: "nǎi",
+  无: "wú",
+  量: "liàng",
+  而: "ér",
+  也: "yě",
+  今: "jīn",
+  归: "guī",
+  法: "fǎ",
+  律: "lǜ",
+  惧: "jù",
+  禽: "qín",
+  兽: "shòu",
+  威: "wēi",
+  服: "fú",
+  将: "jiāng",
+  年: "nián",
+  老: "lǎo",
+  血: "xuè",
+  衰: "shuāi",
+  暗: "àn",
+  中: "zhōng",
+  阎: "yán",
+  子: "zi",
+  着: "zhe",
+  旦: "dàn",
+  身: "shēn",
+  亡: "wáng",
+  可: "kě",
+  枉: "wǎng",
+  生: "shēng",
+  世: "shì",
+  界: "jiè",
+  得: "dé",
+  久: "jiǔ",
+  住: "zhù",
+  内: "nèi",
+  闻: "wén",
+  言: "yán",
+  个: "gè",
+  掩: "yǎn",
+  面: "miàn",
+  悲: "bēi",
+  啼: "tí",
+  俱: "jù",
+  以: "yǐ",
+  常: "cháng",
+  只: "zhī",
+  见: "jiàn",
+  那: "nà",
+  班: "bān",
+  部: "bù",
+  跳: "tiào",
+  出: "chū",
+  通: "tōng",
+  背: "bèi",
+  猿: "yuán",
+  厉: "lì",
+  声: "shēng",
+  高: "gāo",
+  叫: "jiào",
+  若: "ruò",
+  是: "shì",
+  这: "zhè",
+  般: "bān",
+  谓: "wèi",
+  心: "xīn",
+  开: "kāi",
+  发: "fā",
+  如: "rú",
+  虫: "chóng",
+  惟: "wéi",
+  名: "míng",
+  色: "sè",
+  你: "nǐ",
+  佛: "fú",
+  圣: "shèng",
+  者: "zhě",
+  躲: "duǒ",
+  过: "guò",
+  轮: "lún",
+  回: "huí",
+  灭: "miè",
+  川: "chuān",
+  齐: "qí",
+  寿: "shòu",
+  居: "jū",
+  于: "yú",
+  他: "tā",
+  浮: "fú",
+  满: "mǎn",
+  明: "míng",
+  就: "jiù",
+  辞: "cí",
+  汝: "rǔ",
+  云: "yún",
+  游: "yóu",
+  海: "hǎi",
+  角: "jiǎo",
+  涉: "shè",
+  涯: "yá",
+  务: "wù",
+  必: "bì",
+  访: "fǎng",
+  学: "xué",
+  长: "zhǎng",
+  君: "jūn",
+  难: "nán",
+  噫: "yī",
+  句: "jù",
+  话: "huà",
+  顿: "dùn",
+  教: "jiào",
+  网: "wǎng",
+  致: "zhì",
+  使: "shǐ",
+  成: "chéng",
+  鼓: "gǔ",
+  掌: "zhǎng",
+  称: "chēng",
+  扬: "yáng",
+  都: "dōu",
+  善: "shàn",
+  哉: "zāi",
+  越: "yuè",
+  岭: "lǐng",
+  登: "dēng",
+  广: "guǎng",
+  寻: "xún",
+  些: "xiē",
+  果: "guǒ",
+  品: "pǐn",
+  设: "shè",
+  筵: "yán",
+  送: "sòng",
+  次: "cì",
+  去: "qù",
+  采: "cǎi",
+  桃: "táo",
+  摘: "zhāi",
+  异: "yì",
+  刨: "páo",
+  药: "yào",
+  挖: "wā",
+  黄: "huáng",
+  精: "jīng",
+  芝: "zhī",
+  兰: "lán",
+  香: "xiāng",
+  蕙: "huì",
+  瑶: "yáo",
+  草: "cǎo",
+  奇: "qí",
+  花: "huā",
+  件: "jiàn",
+  整: "zhěng",
+  摆: "bǎi",
+  石: "shí",
+  凳: "dèng",
+  桌: "zhuō",
+  排: "pái",
+  列: "liè",
+  酒: "jiǔ",
+  肴: "yáo",
+  尊: "zūn",
+  上: "shàng",
+  坐: "zuò",
+  各: "gè",
+  依: "yī",
+  齿: "chǐ",
+  肩: "jiān",
+  边: "biān",
+  流: "liú",
+  前: "qián",
+  奉: "fèng",
+  痛: "tòng",
+  饮: "yǐn",
+  了: "le",
+};
+
 
 
 
@@ -880,459 +1141,6 @@ const translations_en = {
   了: "It's",
 };
 
-// 初始化语音合成
-const synth = window.speechSynthesis;
-let utterance = null;
-
-// 状态跟踪
-const charStates = {};
-
-// 页面加载完成后初始化
-document.addEventListener("DOMContentLoaded", function () {
-  renderPoem();
-});
-
-// 渲染诗歌
-function renderPoem() {
-  const poemContainer = document.getElementById("poemContainer");
-  const lines = poemText.split("\n");
-
-  lines.forEach((line) => {
-    const lineDiv = document.createElement("div");
-    lineDiv.className = "poem-line";
-
-    // 处理每个字符
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-
-      // 跳过空格
-      if (char.trim() === "") {
-        const spaceSpan = document.createElement("span");
-        spaceSpan.textContent = " ";
-        lineDiv.appendChild(spaceSpan);
-        continue;
-      }
-
-      // 创建字符容器
-      const charContainer = document.createElement("div");
-      charContainer.className = "char-container";
-
-      // 创建字符显示
-      const charSpan = document.createElement("span");
-      charSpan.className = "char";
-      charSpan.textContent = char;
-
-      // 创建拼音显示
-      const pinyinSpan = document.createElement("span");
-      pinyinSpan.className = "pinyin";
-
-      // 创建翻译显示
-      const transSpan = document.createElement("span");
-      transSpan.className = "translation";
-
-      // 添加到容器
-      charContainer.appendChild(pinyinSpan);
-      charContainer.appendChild(charSpan);
-      charContainer.appendChild(transSpan);
-
-      // 添加点击事件
-      charContainer.addEventListener("click", () =>
-        handleCharClick(char, pinyinSpan, transSpan)
-      );
-
-      // 添加到行
-      lineDiv.appendChild(charContainer);
-    }
-
-    // 添加行控制按钮
-    const controlsDiv = document.createElement("div");
-    controlsDiv.className = "line-controls";
-
-    const readBtn = document.createElement("button");
-    readBtn.textContent = "朗读";
-    readBtn.addEventListener("click", () => readLine(line));
-
-    const transBtn = document.createElement("button");
-    transBtn.textContent = "翻译";
-    transBtn.addEventListener("click", () => showLineTranslation(line));
-
-    controlsDiv.appendChild(readBtn);
-    controlsDiv.appendChild(transBtn);
-    lineDiv.appendChild(controlsDiv);
-
-    // 添加到容器
-    poemContainer.appendChild(lineDiv);
-  });
-}
-
-// 处理字符点击
-function handleCharClick(char, pinyinSpan, transSpan) {
-  const charId = `${char}-${pinyinSpan.id}`; // 创建唯一标识
-
-  // 初始化状态
-  if (!charStates[charId]) {
-    charStates[charId] = 0;
-  }
-
-  // 更新状态
-  charStates[charId]++;
-  if (charStates[charId] > 3) {
-    charStates[charId] = 1;
-  }
-
-  // 根据状态执行操作
-  switch (charStates[charId]) {
-    case 1: // 朗读字符
-      readChar(char);
-      updateStatus(`朗读字符: ${char}`);
-      break;
-    case 2: // 显示拼音
-      showPinyin(char, pinyinSpan);
-      updateStatus(`显示拼音: ${char}`);
-      break;
-    case 3: // 显示翻译
-      showTranslation(char, transSpan);
-      updateStatus(`显示翻译: ${char}`);
-      break;
-  }
-}
-
-// 显示拼音
-function showPinyin(char, pinyinSpan) {
-  // 这里应该调用拼音库，简化处理
-  
-
-  const pinyinMap = {
-    美: "měi",
-    猴: "hóu",
-    王: "wáng",
-    享: "xiǎng",
-    乐: "lè",
-    天: "tiān",
-    真: "zhēn",
-    何: "hé",
-    期: "qī",
-    有: "yǒu",
-    三: "sān",
-    五: "wǔ",
-    百: "bǎi",
-    载: "zài",
-    一: "yī",
-    日: "rì",
-    与: "yǔ",
-    群: "qún",
-    喜: "xǐ",
-    宴: "yàn",
-    之: "zhī",
-    间: "jiān",
-    忽: "hū",
-    然: "rán",
-    忧: "yōu",
-    恼: "nǎo",
-    堕: "duò",
-    下: "xià",
-    泪: "lèi",
-    来: "lái",
-    众: "zhòng",
-    慌: "huāng",
-    忙: "máng",
-    罗: "luó",
-    拜: "bài",
-    道: "dào",
-    大: "dà",
-    为: "wèi",
-    烦: "fán",
-    我: "wǒ",
-    虽: "suī",
-    在: "zài",
-    欢: "huān",
-    时: "shí",
-    却: "què",
-    点: "diǎn",
-    儿: "ér",
-    远: "yuǎn",
-    虑: "lǜ",
-    故: "gù",
-    此: "cǐ",
-    又: "yòu",
-    笑: "xiào",
-    好: "hǎo",
-    不: "bù",
-    知: "zhī",
-    足: "zú",
-    等: "děng",
-    会: "huì",
-    仙: "xiān",
-    山: "shān",
-    福: "fú",
-    地: "dì",
-    古: "gǔ",
-    洞: "dòng",
-    神: "shén",
-    州: "zhōu",
-    伏: "fú",
-    麒: "qí",
-    麟: "lín",
-    辖: "xiá",
-    凤: "fèng",
-    凰: "huáng",
-    管: "guǎn",
-    人: "rén",
-    位: "wèi",
-    所: "suǒ",
-    拘: "jū",
-    束: "shù",
-    自: "zì",
-    由: "yóu",
-    乃: "nǎi",
-    无: "wú",
-    量: "liàng",
-    而: "ér",
-    也: "yě",
-    今: "jīn",
-    归: "guī",
-    法: "fǎ",
-    律: "lǜ",
-    惧: "jù",
-    禽: "qín",
-    兽: "shòu",
-    威: "wēi",
-    服: "fú",
-    将: "jiāng",
-    年: "nián",
-    老: "lǎo",
-    血: "xuè",
-    衰: "shuāi",
-    暗: "àn",
-    中: "zhōng",
-    阎: "yán",
-    子: "zi",
-    着: "zhe",
-    旦: "dàn",
-    身: "shēn",
-    亡: "wáng",
-    可: "kě",
-    枉: "wǎng",
-    生: "shēng",
-    世: "shì",
-    界: "jiè",
-    得: "dé",
-    久: "jiǔ",
-    住: "zhù",
-    内: "nèi",
-    闻: "wén",
-    言: "yán",
-    个: "gè",
-    掩: "yǎn",
-    面: "miàn",
-    悲: "bēi",
-    啼: "tí",
-    俱: "jù",
-    以: "yǐ",
-    常: "cháng",
-    只: "zhī",
-    见: "jiàn",
-    那: "nà",
-    班: "bān",
-    部: "bù",
-    跳: "tiào",
-    出: "chū",
-    通: "tōng",
-    背: "bèi",
-    猿: "yuán",
-    厉: "lì",
-    声: "shēng",
-    高: "gāo",
-    叫: "jiào",
-    若: "ruò",
-    是: "shì",
-    这: "zhè",
-    般: "bān",
-    谓: "wèi",
-    心: "xīn",
-    开: "kāi",
-    发: "fā",
-    如: "rú",
-    虫: "chóng",
-    惟: "wéi",
-    名: "míng",
-    色: "sè",
-    你: "nǐ",
-    佛: "fú",
-    圣: "shèng",
-    者: "zhě",
-    躲: "duǒ",
-    过: "guò",
-    轮: "lún",
-    回: "huí",
-    灭: "miè",
-    川: "chuān",
-    齐: "qí",
-    寿: "shòu",
-    居: "jū",
-    于: "yú",
-    他: "tā",
-    浮: "fú",
-    满: "mǎn",
-    明: "míng",
-    就: "jiù",
-    辞: "cí",
-    汝: "rǔ",
-    云: "yún",
-    游: "yóu",
-    海: "hǎi",
-    角: "jiǎo",
-    涉: "shè",
-    涯: "yá",
-    务: "wù",
-    必: "bì",
-    访: "fǎng",
-    学: "xué",
-    长: "zhǎng",
-    君: "jūn",
-    难: "nán",
-    噫: "yī",
-    句: "jù",
-    话: "huà",
-    顿: "dùn",
-    教: "jiào",
-    网: "wǎng",
-    致: "zhì",
-    使: "shǐ",
-    成: "chéng",
-    鼓: "gǔ",
-    掌: "zhǎng",
-    称: "chēng",
-    扬: "yáng",
-    都: "dōu",
-    善: "shàn",
-    哉: "zāi",
-    越: "yuè",
-    岭: "lǐng",
-    登: "dēng",
-    广: "guǎng",
-    寻: "xún",
-    些: "xiē",
-    果: "guǒ",
-    品: "pǐn",
-    设: "shè",
-    筵: "yán",
-    送: "sòng",
-    次: "cì",
-    去: "qù",
-    采: "cǎi",
-    桃: "táo",
-    摘: "zhāi",
-    异: "yì",
-    刨: "páo",
-    药: "yào",
-    挖: "wā",
-    黄: "huáng",
-    精: "jīng",
-    芝: "zhī",
-    兰: "lán",
-    香: "xiāng",
-    蕙: "huì",
-    瑶: "yáo",
-    草: "cǎo",
-    奇: "qí",
-    花: "huā",
-    件: "jiàn",
-    整: "zhěng",
-    摆: "bǎi",
-    石: "shí",
-    凳: "dèng",
-    桌: "zhuō",
-    排: "pái",
-    列: "liè",
-    酒: "jiǔ",
-    肴: "yáo",
-    尊: "zūn",
-    上: "shàng",
-    坐: "zuò",
-    各: "gè",
-    依: "yī",
-    齿: "chǐ",
-    肩: "jiān",
-    边: "biān",
-    流: "liú",
-    前: "qián",
-    奉: "fèng",
-    痛: "tòng",
-    饮: "yǐn",
-    了: "le",
-  };
-  
-
-  const py = pinyinMap[char] || "?";
-  pinyinSpan.textContent = py;
-  pinyinSpan.style.display = "block";
-
-  // 3秒后自动隐藏
-  setTimeout(() => {
-    pinyinSpan.style.display = "none";
-    // 重置状态以便下次点击
-    const charId = `${char}-${pinyinSpan.id}`;
-    charStates[charId] = 0;
-  }, 8000);
-}
-
-// 朗读字符
-function readChar(char) {
-  if (synth.speaking) {
-    synth.cancel();
-  }
-
-  utterance = new SpeechSynthesisUtterance(char);
-  utterance.lang = "zh-CN";
-  utterance.rate = 0.7; // 设置为正常速度的70%
-  synth.speak(utterance);
-}
-
-// 显示翻译
-function showTranslation(char, transSpan) {
-  const lang = document.getElementById("languageSelect").value;
-
-  const translationCard = document.getElementById("translationCard");
-
-  const translateMap = {
-    de: translations_de[char] || "Keine Übersetzung",
-    fr: translations_fr[char] || "Pas de traduction",
-    en: translations_en[char] || "No translation",
-  };
-  const translate = translateMap[lang];
-  translationCard.innerHTML = `
-      <button class="close-btn" onclick="closeTranslationCard()">×</button>
-      <strong style="font-size: 18px;">汉字：</strong> ${char}<br>
-      <strong style="font-size: 18px;">翻译: </strong> ${translate}
-  `;
-
-  translationCard.style.display = "block";
-
-  const charId = `${char}-${transSpan.id}`;
-  charStates[charId] = 0;
-}
-
-function closeTranslationCard() {
-  translationCard.style.display = "none";
-}
-
-// 朗读整行
-function readLine(line) {
-  if (synth.speaking) {
-    synth.cancel();
-  }
-
-  utterance = new SpeechSynthesisUtterance(line);
-  utterance.lang = "zh-CN";
-  utterance.rate = 0.6; // 设置为正常速度的60%，更慢一些
-  synth.speak(utterance);
-
-  updateStatus(`朗读: ${line}`);
-}
-
-
-
 const tianwen_translation_map_fr = {
   美猴王享乐天真: "Le roi de singe est agréable et innocent",
   何期有三五百载: "Combien de temps faut-il pour durer trois ou cinq cents ans",
@@ -1429,8 +1237,6 @@ const tianwen_translation_map_fr = {
   奉果: "Fruit",
   痛饮了一日: "Boire pour une journée",
 };
-
-
 
 const tianwen_translation_map_de = {
   美猴王享乐天真: "Der Affenkönig ist angenehm und unschuldig",
@@ -1629,6 +1435,200 @@ const tianwen_translation_map_en = {
   奉果: "Fruit",
   痛饮了一日: "Drink for a day",
 };
+const synth = window.speechSynthesis;
+let utterance = null;
+
+// 状态跟踪
+const charStates = {};
+
+// 页面加载完成后初始化
+document.addEventListener("DOMContentLoaded", function () {
+  renderPoem();
+});
+
+// 渲染诗歌
+function renderPoem() {
+  const poemContainer = document.getElementById("poemContainer");
+  const lines = poemText.split("\n");
+
+  lines.forEach((line) => {
+    const lineDiv = document.createElement("div");
+    lineDiv.className = "poem-line";
+
+    // 处理每个字符
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+
+      // 跳过空格
+      if (char.trim() === "") {
+        const spaceSpan = document.createElement("span");
+        spaceSpan.textContent = " ";
+        lineDiv.appendChild(spaceSpan);
+        continue;
+      }
+
+      // 创建字符容器
+      const charContainer = document.createElement("div");
+      charContainer.className = "char-container";
+
+      // 创建字符显示
+      const charSpan = document.createElement("span");
+      charSpan.className = "char";
+      charSpan.textContent = char;
+
+      // 创建拼音显示
+      const pinyinSpan = document.createElement("span");
+      pinyinSpan.className = "pinyin";
+
+      // 创建翻译显示
+      const transSpan = document.createElement("span");
+      transSpan.className = "translation";
+
+      // 添加到容器
+      charContainer.appendChild(pinyinSpan);
+      charContainer.appendChild(charSpan);
+      charContainer.appendChild(transSpan);
+
+      // 添加点击事件
+      charContainer.addEventListener("click", () =>
+        handleCharClick(char, pinyinSpan, transSpan)
+      );
+
+      // 添加到行
+      lineDiv.appendChild(charContainer);
+    }
+
+    // 添加行控制按钮
+    const controlsDiv = document.createElement("div");
+    controlsDiv.className = "line-controls";
+
+    const readBtn = document.createElement("button");
+    readBtn.textContent = "朗读";
+    readBtn.addEventListener("click", () => readLine(line));
+
+    const transBtn = document.createElement("button");
+    transBtn.textContent = "翻译";
+    transBtn.addEventListener("click", () => showLineTranslation(line));
+
+    controlsDiv.appendChild(readBtn);
+    controlsDiv.appendChild(transBtn);
+    lineDiv.appendChild(controlsDiv);
+
+    // 添加到容器
+    poemContainer.appendChild(lineDiv);
+  });
+}
+
+// 处理字符点击
+function handleCharClick(char, pinyinSpan, transSpan) {
+  const charId = `${char}-${pinyinSpan.id}`; // 创建唯一标识
+
+  // 初始化状态
+  if (!charStates[charId]) {
+    charStates[charId] = 0;
+  }
+
+  // 更新状态
+  charStates[charId]++;
+  if (charStates[charId] > 3) {
+    charStates[charId] = 1;
+  }
+
+  // 根据状态执行操作
+  switch (charStates[charId]) {
+    case 1: // 朗读字符
+      readChar(char);
+      updateStatus(`朗读字符: ${char}`);
+      break;
+    case 2: // 显示拼音
+      showPinyin(char, pinyinSpan);
+      updateStatus(`显示拼音: ${char}`);
+      break;
+    case 3: // 显示翻译
+      showTranslation(char, transSpan);
+      updateStatus(`显示翻译: ${char}`);
+      break;
+  }
+}
+
+// 显示拼音
+function showPinyin(char, pinyinSpan) {
+  // 这里应该调用拼音库，简化处理
+
+  const py = pinyinMap[char] || "?";
+  pinyinSpan.textContent = py;
+  pinyinSpan.style.display = "block";
+
+  // 3秒后自动隐藏
+  setTimeout(() => {
+    pinyinSpan.style.display = "none";
+    // 重置状态以便下次点击
+    const charId = `${char}-${pinyinSpan.id}`;
+    charStates[charId] = 0;
+  }, 8000);
+}
+
+// 朗读字符
+function readChar(char) {
+  if (synth.speaking) {
+    synth.cancel();
+  }
+
+  utterance = new SpeechSynthesisUtterance(char);
+  utterance.lang = "zh-CN";
+  utterance.rate = 0.7; // 设置为正常速度的70%
+  synth.speak(utterance);
+}
+
+// 显示翻译
+function showTranslation(char, transSpan) {
+  const lang = document.getElementById("languageSelect").value;
+
+  const translationCard = document.getElementById("translationCard");
+
+  const translateMap = {
+    de: translations_de[char] || "Keine Übersetzung",
+    fr: translations_fr[char] || "Pas de traduction",
+    en: translations_en[char] || "No translation",
+  };
+  const translate = translateMap[lang];
+  translationCard.innerHTML = `
+  <div class="card-header">
+    <button class="close-btn" onclick="closeTranslationCard()">×</button>
+  </div>
+  <div class="info-block">
+    <div class="info-label">汉字：</div>
+    <div class="info-content">${char}</div>
+    <div class="info-label">翻译：</div>
+    <div class="info-content">${translate}</div>
+  </div>
+`;
+
+  translationCard.style.display = "block";
+
+  const charId = `${char}-${transSpan.id}`;
+  charStates[charId] = 0;
+}
+
+function closeTranslationCard() {
+  const translationCard = document.getElementById("translationCard");
+  translationCard.style.display = "none";
+}
+
+// 朗读整行
+function readLine(line) {
+  if (synth.speaking) {
+    synth.cancel();
+  }
+
+  utterance = new SpeechSynthesisUtterance(line);
+  utterance.lang = "zh-CN";
+  utterance.rate = 0.6; // 设置为正常速度的60%，更慢一些
+  synth.speak(utterance);
+
+  updateStatus(`朗读: ${line}`);
+}
+
 function showLineTranslation(line) {
   const lang = document.getElementById("languageSelect").value;
   const translatedMap = {
@@ -1641,11 +1641,15 @@ function showLineTranslation(line) {
   const translationCard = document.getElementById("translationCard");
 
   translationCard.innerHTML = `
-<button class="close-btn" onclick="closeTranslationCard()">×</button>
-<strong style="font-size: 18px;">原文：</strong><br>
-<div style="margin-bottom: 10px;">${line}</div>
-<strong style="font-size: 18px;">翻译：</strong><br>
-<div>${translatedLine}</div>
+  <div class="card-header">
+    <button class="close-btn" onclick="closeTranslationCard()">×</button>
+  </div>
+  <div class="info-block">
+    <div class="info-label">原文：</div>
+    <div class="info-content">${line}</div>
+    <div class="info-label">翻译：</div>
+    <div class="info-content">${translatedLine}</div>
+  </div>
 `;
 
   translationCard.style.display = "block";
