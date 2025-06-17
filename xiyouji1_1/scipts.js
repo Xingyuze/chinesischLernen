@@ -1,7 +1,6 @@
 const translationCard = document.getElementById('translationCard');
 // 诗歌文本
-const poemText = `
-感盘古开辟
+const poemText = `感盘古开辟
 三皇治世
 五帝定伦
 世界之间
@@ -74,8 +73,7 @@ const poemText = `
 玉帝垂赐恩慈曰
 下方之物
 乃天地精华所生
-不足为异
-`;
+不足为异`;
 // 翻译数据 (示例)
 const pinyinMap = {
   感: "gǎn",

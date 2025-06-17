@@ -92,8 +92,7 @@ const poemText = `
 奉酒
 奉花
 奉果
-痛饮了一日
-`;
+痛饮了一日`;
 
 const pinyinMap = {
   美: "měi",

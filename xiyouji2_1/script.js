@@ -90,8 +90,7 @@ const poemText = `话表美猴王得了姓名
 不能
 悟空道
 不学
-不学
-`;
+不学`;
 
 const pinyinMap = {
   话: "huà",

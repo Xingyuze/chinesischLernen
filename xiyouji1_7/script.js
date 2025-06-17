@@ -1,6 +1,6 @@
 const translationCard = document.getElementById("translationCard");
 // 诗歌文本c
-export const poemText = `猴王听说
+const poemText = `猴王听说
 只得相辞
 出深林
 找上路径
@@ -63,9 +63,8 @@ export const poemText = `猴王听说
 一层层深阁琼楼
 一进进珠宫贝阙
 说不尽那静室幽居
-直至瑶台之下
-`;
-export const pinyinMap = {
+直至瑶台之下`;
+const pinyinMap = {
   猴: "hóu",
   王: "wáng",
   听: "tīng",
@@ -262,7 +261,7 @@ export const pinyinMap = {
   至: "zhì",
   瑶: "yáo",
 };
-export const translations_en = {
+const translations_en = {
   猴: "monkey",
   王: "king",
   听: "listen",
@@ -460,7 +459,7 @@ export const translations_en = {
   瑶: "Yao",
 };
 
-export const translations_de = {
+const translations_de = {
   猴: "Affe",
   王: "König",
   听: "Hören",
@@ -658,7 +657,7 @@ export const translations_de = {
   瑶: "Yao",
 };
 
-export const translations_fr = {
+const translations_fr = {
   猴: "singe",
   王: "roi",
   听: "écouter",

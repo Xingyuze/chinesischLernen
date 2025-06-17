@@ -68,8 +68,7 @@ const poemText = `祖师闻言
 飞萤光散影
 过雁字排云
 正直三更候
-应该访道真
-`;
+应该访道真`;
 
 const pinyinMap = {
   "祖": "zǔ",

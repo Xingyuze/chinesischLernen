@@ -1,6 +1,6 @@
 const translationCard = document.getElementById("translationCard");
 // 诗歌文本c
-export const poemText = `见那菩提祖师端坐在台上
+const poemText = `见那菩提祖师端坐在台上
 两边有三十个小仙侍立台
 美猴王一见
 倒身下拜
@@ -112,10 +112,9 @@ export const poemText = `见那菩提祖师端坐在台上
 鸿蒙初辟原无姓
 打破顽空须悟
 毕竟不之向后修些甚么道果
-且听下回分解
-`;
+且听下回分解`;
 
-export const pinyinMap = {
+const pinyinMap = {
   见: "jiàn",
   那: "nà",
   菩: "pú",
@@ -373,7 +372,7 @@ export const pinyinMap = {
   解: "jiě",
 };
 
-export const translations_en = {
+const translations_en = {
   见: "See",
   那: "That",
   菩: "Bodhisattva",
@@ -631,7 +630,7 @@ export const translations_en = {
   解: "untie",
 };
 
-export const translations_de = {
+const translations_de = {
   见: "Sehen",
   那: "Das",
   菩: "Bodhisattva",
@@ -889,7 +888,7 @@ export const translations_de = {
   解: "lösen",
 };
 
-export const translations_fr = {
+const translations_fr = {
   见: "Voir",
   那: "Que",
   菩: "Bodhisattva",

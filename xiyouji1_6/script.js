@@ -139,8 +139,7 @@ const poemText = `登岸偏访多时
 老母何人奉养
 我要斫柴
 你自去
-自去
-`;
+自去`;
 const pinyinMap = {
   登: "dēng",
   岸: "àn",

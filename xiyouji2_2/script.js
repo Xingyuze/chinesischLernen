@@ -74,8 +74,7 @@ const poemText = `祖师道
 到底只成空耳
 悟空道
 也不学
-不学
-`;
+不学`;
 
 const pinyinMap = {
   "祖": "zǔ",
