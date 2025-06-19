@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>反字结构分析</title>
+  <style>
+    body {
+      font-family: 'Noto Serif SC', 'KaiTi', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f4f2ec;
+      color: #333;
+      padding: 20px;
+    }
+    #scoreDisplay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #fff7da;
+  color: #5a3825;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 1.2em;
+  font-family: 'KaiTi', serif;
+  font-weight: bold;
+  box-shadow: 0 0 8px rgba(0,0,0,0.15);
+  z-index: 9998;
+  transition: transform 0.3s ease;
+}
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 10px;
+    }
+
+    .pinyin-row {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+    }
+
+    .pinyin-block {
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      font-size: 3rem;
+    }
+    .pinyin-block .pinyin {
+        font-size: .5em;
+    }
+
+    .pinyin-block:hover::after {
+      content: attr(data-translation);
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      font-size: 0.6em;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    .radicals-row {
+      display: flex;
+      gap: 60px;
+      margin: 30px 0 10px;
+      font-size: 2em;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+      align-items: center;
+    }
+
+    .radical-form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #fffef7;
+      padding: 15px 20px;
+      border: 2px solid #a67c52;
+      border-radius: 10px;
+      box-shadow: 2px 2px 10px rgba(166, 124, 82, 0.2);
+    }
+
+    .radical-char {
+      font-size: 1.2em;
+      color: #555;
+    }
+
+    input[type="text"] {
+      font-size: 3rem;
+      width: 80px;
+      height: 80px;
+      text-align: center;
+      margin: 5px 0;
+    }
+
+    .submit-btn, .expand-btn {
+      margin-top: 5px;
+      padding: 5px 10px;
+      font-size: 1em;
+      background-color: #d8c3a5;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .submit-btn:hover, .expand-btn:hover {
+      background-color: #bfa382;
+    }
+
+    .words {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .word {
+        margin: 5px;
+      font-size: 3rem;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .word:hover::after {
+        content: attr(data-translation);
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      font-size: 0.5em;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    /* Übersetzungskarte */
+    .translation-card {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      border: 2px solid #ccc;
+      padding: 10px 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      display: none;
+    }
+    .radical {      margin: 5px;
+      font-size: 3rem;
+      cursor: pointer;
+      position: relative;}
+    .radical:hover::after{
+        content: attr(data-translation);
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      font-size: 0.5em;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+  </style>
+</head>
+<body>
+    <div id="scoreDisplay">分数: 0</div>
+
+  <div class="pinyin-row">
+    <div class="pinyin-block" onclick="speak('反对')" data-translation="dagegen sein"><div class="pinyin">fǎn duì</div>反对</div>
+    <div class="pinyin-block" onclick="speak('反悔')" data-translation="Reue haben"><div class="pinyin">fǎn huǐ</div>反悔</div>
+    <div class="pinyin-block" onclick="speak('反正')" data-translation="sowieso / ohnehin"><div class="pinyin">fǎn zhèng</div>反正</div>
+  </div>
+
+  <h1>反</h1>
+  <span>➕</span>
+
+  <div class="radicals-row">
+    <div class="radical" data-translation="Hand">扌</div>
+    <div class="radical" data-translation="Bewegen">之</div>
+    <div class="radical" data-translation="Holz">木</div>
+    <div class="radical" data-translation="Holzbrett">片</div>
+    <div class="radical" data-translation="Muschel">贝</div>
+  </div>
+
+  <div class="form-row">
+    <div class="radical-form">
+      <div class="radical-char">shǒu</div>
+      <input type="text" id="input1" maxlength="1" />
+      <button class="submit-btn" onclick="checkInput('input1', '扳')">提交</button>
+      <button class="expand-btn" onclick="toggleWords('words1')">➕</button>
+      <div class="words" id="words1">
+        <div class="word" onclick="showWord('扳手')" data-translation="Schraubenschlüssel">扳手</div>
+      </div>
+    </div>
+
+    <div class="radical-form">
+      <div class="radical-char">zhī</div>
+      <input type="text" id="input2" maxlength="1" />
+      <button class="submit-btn" onclick="checkInput('input2', '返')">提交</button>
+      <button class="expand-btn" onclick="toggleWords('words2')">➕</button>
+      <div class="words" id="words2">
+        <div class="word" onclick="showWord('返回')" data-translation="zurückkehren">返回</div>
+      </div>
+    </div>
+
+    <div class="radical-form">
+      <div class="radical-char">mù</div>
+      <input type="text" id="input3" maxlength="1" />
+      <button class="submit-btn" onclick="checkInput('input3', '板')">提交</button>
+      <button class="expand-btn" onclick="toggleWords('words3')">➕</button>
+      <div class="words" id="words3">
+        <div class="word" onclick="showWord('木板')" data-translation="Holzbrett">木板</div>
+      </div>
+    </div>
+
+    <div class="radical-form">
+      <div class="radical-char">piàn</div>
+      <input type="text" id="input4" maxlength="1" />
+      <button class="submit-btn" onclick="checkInput('input4', '版')">提交</button>
+      <button class="expand-btn" onclick="toggleWords('words4')">➕</button>
+      <div class="words" id="words4">
+        <div class="word" onclick="showWord('版本')" data-translation="Version">版本</div>
+      </div>
+    </div>
+
+    <div class="radical-form">
+      <div class="radical-char">bèi</div>
+      <input type="text" id="input5" maxlength="1" />
+      <button class="submit-btn" onclick="checkInput('input5', '贩')">提交</button>
+      <button class="expand-btn" onclick="toggleWords('words5')">➕</button>
+      <div class="words" id="words5">
+        <div class="word" onclick="showWord('贩卖')" data-translation="verkaufen">贩卖</div>
+      </div>
+    </div>
+  </div>
+  <div id="pointAnimation" style="
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  background-color: #ffe28a;
+  color: #5c3a21;
+  padding: 15px 25px;
+  border-radius: 12px;
+  font-size: 1.8em;
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(0,0,0,0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.8s ease;
+  z-index: 9999;
+">Yeahh! +10 Punkte 🎉</div>
+
+
+  <div class="translation-card" id="translationCard"></div>
+
+  <script>
+    function speak(word) {
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = "zh-CN";
+      utterance.rate = 0.8;
+      speechSynthesis.speak(utterance);
+    }
+
+    function checkInput(inputId, correctChar) {
+  const val = document.getElementById(inputId).value;
+  if (val === correctChar) {
+    currentScore += 10;
+    updateScoreDisplay();
+    showPointAnimation();
+  } else {
+    alert("❌ 错误，请再试一次。");
+  }
+}
+
+function showPointAnimation() {
+  const anim = document.getElementById("pointAnimation");
+  anim.style.opacity = "1";
+  anim.style.transform = "translate(-50%, -50%) scale(1.2)";
+  
+  setTimeout(() => {
+    anim.style.opacity = "0";
+    anim.style.transform = "translate(-50%, -50%) scale(1)";
+  }, 1200);
+}
+function updateScoreDisplay() {
+  const scoreEl = document.getElementById("scoreDisplay");
+  scoreEl.textContent = `分数: ${currentScore}`;
+  scoreEl.style.transform = "scale(1.2)";
+  setTimeout(() => {
+    scoreEl.style.transform = "scale(1)";
+  }, 300);
+}
+
+
+    function toggleWords(id) {
+      const el = document.getElementById(id);
+      el.style.display = el.style.display === "block" ? "none" : "block";
+    }
+
+    function showWord(word) {
+      speak(word);
+      const translation = document.querySelector(`[onclick="showWord('${word}')"]`).getAttribute("data-translation");
+      const card = document.getElementById("translationCard");
+      card.innerHTML = `<strong>${word}</strong><br>${translation}`;
+      card.style.display = "block";
+      setTimeout(() => {
+        card.style.display = "none";
+      }, 4000);
+    }
+    let currentScore = 0;
+
+  </script>
+</body>
+</html>
