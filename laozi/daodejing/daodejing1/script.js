@@ -15288,7 +15288,7 @@ const tianwen_translation_map_es = {
   "周無所不窮極": "Zhou yi no es un sacrificio",
   "不偏於一逝": "No sesgado a pasar",
   "故曰遠也": "Por lo tanto, se llama lejos",
-  "不隨於所適": "No tan bueno como",\
+  "不隨於所適": "No tan bueno como",
   "其體獨立": "Su cuerpo es independiente",
   "故曰反也": "Por lo tanto, se llama rebelión",
   "〉": "None",
