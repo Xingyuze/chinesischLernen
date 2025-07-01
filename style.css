@@ -72,6 +72,9 @@ body {
     color: #8c4b32;
     background-color: #f1e6d6;
   }
+  a span {
+    font-size: 2em;
+  }
   
   /* Untercontainer */
   .container_subject {
