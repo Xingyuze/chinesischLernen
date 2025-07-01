@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成语听力学习游戏</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f0f8ff;
+            overflow: hidden;
+            user-select: none;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        #header {
+            text-align: center;
+            padding: 10px;
+            background-color: #4b6cb7;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        #game-area {
+            position: absolute;
+            top: 60px;
+            bottom: 200px; /* 增大游戏区域 */
+            width: 100%;
+            background-color: #e6f7ff;
+            overflow: hidden;
+        }
+        
+        #unlearned-area {
+            position: absolute;
+            bottom: 0;
+            height: 180px; /* 降低未学区域高度 */
+            width: 100%;
+            background-color: #f5f5f5;
+            border-top: 2px solid #ff6b6b;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            overflow-y: auto;
+        }
+        
+        .idiom {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            transform-origin: center center;
+        }
+        
+        .idiom:hover {
+            transform: scale(1.1);
+        }
+        
+        .unlearned-idiom {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #ff6b6b;
+            color: white;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        #score-board {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 20px;
+            color: white;
+            background-color: rgba(0,0,0,0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background-color: #e6e6e6;
+        }
+        
+        #feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            color: #4b6cb7;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            text-align: center;
+        }
+        
+        #pinyin-display {
+            position: absolute;
+            bottom: 190px; /* 调整位置 */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: 18px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #meaning-display {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            max-width: 80%;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .highlight {
+            position: fixed;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) scale(1);
+            z-index: 100;
+            animation: highlight 3s forwards;
+        }
+        
+        @keyframes highlight {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            10% { transform: translate(-50%, -50%) scale(10); opacity: 1; }
+            90% { transform: translate(-50%, -50%) scale(10); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(10); opacity: 0; }
+        }
+        
+        #status {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            font-size: 16px;
+            color: #4b6cb7;
+            background-color: rgba(255,255,255,0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        
+        .unlearned-title {
+            width: 100%; 
+            text-align: center; 
+            color: #ff6b6b; 
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="header">成语听力学习游戏</div>
+        <div id="controls">
+            <button id="start-btn">开始</button>
+            <button id="pause-btn">暂停</button>
+            <button id="replay-btn">重读成语</button>
+        </div>
+        <div id="status">等待开始...</div>
+        <div id="score-board">得分: 0</div>
+        <div id="game-area"></div>
+        <div id="pinyin-display"></div>
+        <div id="meaning-display"></div>
+        <div id="feedback">+10</div>
+        <div id="unlearned-area">
+            <div class="unlearned-title">未学成语</div>
+        </div>
+    </div>
+
+    <script>
+        // 成语数据
+        const idioms = [
+            {text: "一五一十", pinyin: "yī wǔ yī shí", meaning: "形容叙述详尽清楚"},
+            {text: "十全十美", pinyin: "shí quán shí měi", meaning: "形容非常完美"},
+            {text: "七上八下", pinyin: "qī shàng bā xià", meaning: "形容心神不定"},
+            {text: "八面威风", pinyin: "bā miàn wēi fēng", meaning: "形容神气十足"},
+            {text: "九九归一", pinyin: "jiǔ jiǔ guī yī", meaning: "归根结底"},
+            {text: "一心一意", pinyin: "yī xīn yī yì", meaning: "心思专一"},
+            {text: "三心二意", pinyin: "sān xīn èr yì", meaning: "形容犹豫不决或意志不坚定"},
+            {text: "五湖四海", pinyin: "wǔ hú sì hǎi", meaning: "指全国各地"},
+            {text: "千方百计", pinyin: "qiān fāng bǎi jì", meaning: "想尽或用尽一切办法"},
+            {text: "千军万马", pinyin: "qiān jūn wàn mǎ", meaning: "形容雄壮的队伍或浩大的声势"},
+            {text: "千叮万嘱", pinyin: "qiān dīng wàn zhǔ", meaning: "再三嘱咐"},
+            {text: "千言万语", pinyin: "qiān yán wàn yǔ", meaning: "形容说的话很多"},
+            {text: "千变万化", pinyin: "qiān biàn wàn huà", meaning: "形容变化非常多"},
+            {text: "千真万确", pinyin: "qiān zhēn wàn què", meaning: "形容情况非常确实"},
+            {text: "千锤百炼", pinyin: "qiān chuí bǎi liàn", meaning: "比喻经历多次艰苦斗争的锻炼和考验"},
+            {text: "万无一失", pinyin: "wàn wú yī shī", meaning: "指非常有把握，绝对不会出差错"},
+            {text: "万众一心", pinyin: "wàn zhòng yī xīn", meaning: "千万人一条心，形容团结一致"},
+            {text: "万紫千红", pinyin: "wàn zǐ qiān hóng", meaning: "形容百花齐放，色彩艳丽"},
+            {text: "万籁俱寂", pinyin: "wàn lài jù jì", meaning: "形容周围环境非常安静，一点儿声响都没有"},
+            {text: "三令五申", pinyin: "sān lìng wǔ shēn", meaning: "多次命令和告诫"},
+            {text: "三番五次", pinyin: "sān fān wǔ cì", meaning: "屡次"},
+            {text: "三思而行", pinyin: "sān sī ér xíng", meaning: "经过反复考虑，然后再去做"},
+            {text: "三顾茅庐", pinyin: "sān gù máo lú", meaning: "比喻真心诚意，一再邀请"},
+            {text: "三缄其口", pinyin: "sān jiān qí kǒu", meaning: "形容说话谨慎或严守秘密"},
+            {text: "四面楚歌", pinyin: "sì miàn chǔ gē", meaning: "比喻陷入四面受敌、孤立无援的境地"},
+            {text: "四通八达", pinyin: "sì tōng bā dá", meaning: "四面八方都有路可通"},
+            {text: "四海为家", pinyin: "sì hǎi wéi jiā", meaning: "指志在四方，不留恋家乡或个人小天地"},
+            {text: "四分五裂", pinyin: "sì fēn wǔ liè", meaning: "形容不完整，不集中，不团结，不统一"},
+            {text: "四平八稳", pinyin: "sì píng bā wěn", meaning: "形容说话、做事、写文章稳当"},
+            {text: "五彩缤纷", pinyin: "wǔ cǎi bīn fēn", meaning: "指颜色繁多，非常好看"},
+            {text: "五光十色", pinyin: "wǔ guāng shí sè", meaning: "形容色彩鲜艳，花样繁多"},
+            {text: "五颜六色", pinyin: "wǔ yán liù sè", meaning: "形容色彩复杂或花样繁多"},
+            {text: "六神无主", pinyin: "liù shén wú zhǔ", meaning: "形容惊慌着急，没了主意，不知如何才好"},
+            {text: "六亲不认", pinyin: "liù qīn bù rèn", meaning: "形容不重天伦，不通人情，对亲属都不顾"},
+            {text: "七嘴八舌", pinyin: "qī zuǐ bā shé", meaning: "形容人多口杂"},
+            {text: "七手八脚", pinyin: "qī shǒu bā jiǎo", meaning: "形容人多手杂，动作纷乱"},
+            {text: "八仙过海", pinyin: "bā xiān guò hǎi", meaning: "比喻各自拿出本领或办法，互相竞赛"},
+            {text: "九牛一毛", pinyin: "jiǔ niú yī máo", meaning: "比喻极大数量中极微小的数量，微不足道"},
+            {text: "十拿九稳", pinyin: "shí ná jiǔ wěn", meaning: "比喻很有把握"},
+            {text: "百发百中", pinyin: "bǎi fā bǎi zhòng", meaning: "形容射箭或打枪准确，每次都命中目标"},
+            {text: "百战百胜", pinyin: "bǎi zhàn bǎi shèng", meaning: "每战必胜，形容所向无敌"},
+            {text: "百折不挠", pinyin: "bǎi zhé bù náo", meaning: "比喻意志坚强，无论受到多少次挫折，毫不动摇退缩"},
+            {text: "千钧一发", pinyin: "qiān jūn yī fà", meaning: "比喻万分危急或异常要紧"},
+            {text: "万水千山", pinyin: "wàn shuǐ qiān shān", meaning: "万道河，千重山，形容路途艰难遥远"},
+            {text: "万众瞩目", pinyin: "wàn zhòng zhǔ mù", meaning: "大家十分关注"},    
+            {text: "爱不释手", pinyin: "ài bù shì shǒu", meaning: "喜欢得舍不得放手"},
+            {text: "爱莫能助", pinyin: "ài mò néng zhù", meaning: "虽然同情但无力帮助"},
+            {text: "安分守己", pinyin: "ān fèn shǒu jǐ", meaning: "规矩老实，守本分"},
+            {text: "安居乐业", pinyin: "ān jū lè yè", meaning: "安定地生活，愉快地工作"},
+            {text: "安然无恙", pinyin: "ān rán wú yàng", meaning: "平安无事，没有遭受损害"},
+            {text: "安如泰山", pinyin: "ān rú tài shān", meaning: "形容像泰山一样稳固，不可动摇"},
+            {text: "按部就班", pinyin: "àn bù jiù bān", meaning: "按照一定的条理，遵循一定的程序"},
+            {text: "暗无天日", pinyin: "àn wú tiān rì", meaning: "形容社会极端黑暗"},
+            {text: "昂首阔步", pinyin: "áng shǒu kuò bù", meaning: "形容精神抖擞，意气风发"},
+            {text: "八拜之交", pinyin: "bā bài zhī jiāo", meaning: "结为异姓兄弟的关系"},
+            {text: "八面玲珑", pinyin: "bā miàn líng lóng", meaning: "形容人处世圆滑，各方面都能巧妙应对"},
+            {text: "拔苗助长", pinyin: "bá miáo zhù zhǎng", meaning: "比喻违反事物发展的客观规律，急于求成，反而坏事"},
+            {text: "跋山涉水", pinyin: "bá shān shè shuǐ", meaning: "形容长途奔波的艰辛"},
+            {text: "白璧微瑕", pinyin: "bái bì wēi xiá", meaning: "比喻很好的人或事物有些小缺点"},
+            {text: "百步穿杨", pinyin: "bǎi bù chuān yáng", meaning: "形容箭法或枪法十分高明"},
+            {text: "百尺竿头", pinyin: "bǎi chǐ gān tóu", meaning: "比喻极高的官位和功名，或学问、事业有很高的成就"},
+            {text: "百读不厌", pinyin: "bǎi dú bù yàn", meaning: "形容文章写得好，百看不烦"},
+            {text: "百发百中", pinyin: "bǎi fā bǎi zhòng", meaning: "形容射箭或打枪准确，每次都命中目标"},
+            {text: "百废俱兴", pinyin: "bǎi fèi jù xīng", meaning: "各种该办未办的事业都兴办起来"},
+            {text: "百感交集", pinyin: "bǎi gǎn jiāo jí", meaning: "各种感触交织在一起，形容感触很多，心情复杂"},
+            {text: "百花齐放", pinyin: "bǎi huā qí fàng", meaning: "比喻艺术上不同形式和风格的自由发展"},
+            {text: "百家争鸣", pinyin: "bǎi jiā zhēng míng", meaning: "指各种学术派别的自由争论"},
+            {text: "百孔千疮", pinyin: "bǎi kǒng qiān chuāng", meaning: "比喻破坏严重或弊病很多"},
+            {text: "百口莫辩", pinyin: "bǎi kǒu mò biàn", meaning: "即使有一百张嘴也辩解不清"},
+            {text: "百里挑一", pinyin: "bǎi lǐ tiāo yī", meaning: "一百个当中就挑出这一个，形容十分出众"},
+            {text: "百炼成钢", pinyin: "bǎi liàn chéng gāng", meaning: "比喻经过长期锻炼，变得非常坚强"},
+            {text: "百年大计", pinyin: "bǎi nián dà jì", meaning: "关系到长远利益的重要计划或措施"},
+            {text: "百思不解", pinyin: "bǎi sī bù jiě", meaning: "百般思索也无法理解"},
+            {text: "百无聊赖", pinyin: "bǎi wú liáo lài", meaning: "精神上无所寄托，感到什么都没意思"},
+            {text: "百依百顺", pinyin: "bǎi yī bǎi shùn", meaning: "形容一切都顺从别人"},
+            {text: "百战不殆", pinyin: "bǎi zhàn bù dài", meaning: "经历许多次战役都没有遭到危险，形容善于用兵"},
+            {text: "百折不挠", pinyin: "bǎi zhé bù náo", meaning: "比喻意志坚强，无论受到多少次挫折，毫不动摇退缩"},
+            {text: "班门弄斧", pinyin: "bān mén nòng fǔ", meaning: "在行家面前卖弄本领"},
+            {text: "半斤八两", pinyin: "bàn jīn bā liǎng", meaning: "比喻彼此一样，不相上下"},
+            {text: "半途而废", pinyin: "bàn tú ér fèi", meaning: "事情没做完就停止，不能善始善终"},
+            {text: "包罗万象", pinyin: "bāo luó wàn xiàng", meaning: "形容内容丰富，应有尽有"},
+            {text: "饱经风霜", pinyin: "bǎo jīng fēng shuāng", meaning: "形容经历过长期的艰难困苦"},
+            {text: "报仇雪恨", pinyin: "bào chóu xuě hèn", meaning: "报冤仇，除怨恨"},
+            {text: "抱残守缺", pinyin: "bào cán shǒu quē", meaning: "形容保守不知改进"},
+            {text: "抱头鼠窜", pinyin: "bào tóu shǔ cuàn", meaning: "形容狼狈逃跑的样子"},
+            {text: "暴风骤雨", pinyin: "bào fēng zhòu yǔ", meaning: "来势急速而猛烈的风雨，比喻声势浩大，发展迅猛"},
+            {text: "暴跳如雷", pinyin: "bào tiào rú léi", meaning: "急怒叫跳，像打雷一样猛烈，形容又急又怒，大发脾气的样子"},
+            {text: "杯弓蛇影", pinyin: "bēi gōng shé yǐng", meaning: "比喻疑神疑鬼，自相惊扰"},
+            {text: "杯水车薪", pinyin: "bēi shuǐ chē xīn", meaning: "比喻力量太小，解决不了问题"},
+            {text: "卑躬屈膝", pinyin: "bēi gōng qū xī", meaning: "形容没有骨气，低声下气地讨好奉承"},
+            {text: "悲欢离合", pinyin: "bēi huān lí hé", meaning: "泛指生活中经历的各种境遇和由此产生的各种心情"},
+            {text: "悲天悯人", pinyin: "bēi tiān mǐn rén", meaning: "指哀叹时世的艰难，怜惜人们的痛苦"},
+            {text: "背道而驰", pinyin: "bèi dào ér chí", meaning: "朝相反的方向跑，比喻彼此的方向和目的完全相反"},
+            {text: "背井离乡", pinyin: "bèi jǐng lí xiāng", meaning: "离开家乡到外地"},
+            {text: "背水一战", pinyin: "bèi shuǐ yī zhàn", meaning: "比喻在艰难情况下跟敌人决一死战"},
+            {text: "奔走相告", pinyin: "bēn zǒu xiāng gào", meaning: "指有重大的消息时，人们奔跑着相互转告"},
+            {text: "本末倒置", pinyin: "běn mò dào zhì", meaning: "比喻把主次、轻重的位置弄颠倒了"},
+            {text: "笨鸟先飞", pinyin: "bèn niǎo xiān fēi", meaning: "比喻能力差的人怕落后，做事比别人先动手"},
+            {text: "逼上梁山", pinyin: "bī shàng liáng shān", meaning: "比喻被迫进行反抗或不得不做某事"},
+            {text: "比比皆是", pinyin: "bǐ bǐ jiē shì", meaning: "到处都是，形容极其常见"},
+            {text: "必恭必敬", pinyin: "bì gōng bì jìng", meaning: "形容态度十分恭敬"},
+            {text: "闭关锁国", pinyin: "bì guān suǒ guó", meaning: "封闭关口，不与外国往来"},
+            {text: "闭门造车", pinyin: "bì mén zào chē", meaning: "比喻脱离实际，只凭主观办事"},
+            {text: "敝帚自珍", pinyin: "bì zhǒu zì zhēn", meaning: "比喻东西虽然不好，自己却很珍惜"},
+            {text: "避实就虚", pinyin: "bì shí jiù xū", meaning: "指避开敌人的主力，找敌人的弱点进攻"},
+            {text: "鞭长莫及", pinyin: "biān cháng mò jí", meaning: "比喻力量达不到"},
+            {text: "变本加厉", pinyin: "biàn běn jiā lì", meaning: "指情况变得比本来更加严重"},
+            {text: "标新立异", pinyin: "biāo xīn lì yì", meaning: "提出新奇的主张，表示与众不同"},
+            {text: "别出心裁", pinyin: "bié chū xīn cái", meaning: "另有一种构思或设计，指想出的办法与众不同"},
+            {text: "别具一格", pinyin: "bié jù yī gé", meaning: "另有一种独特的风格"},
+            {text: "别开生面", pinyin: "bié kāi shēng miàn", meaning: "比喻另外创出一种新的形式或局面"},
+            {text: "别有用心", pinyin: "bié yǒu yòng xīn", meaning: "言论或行动中另有不可告人的企图"},
+            {text: "宾至如归", pinyin: "bīn zhì rú guī", meaning: "形容招待客人热情周到"},
+            {text: "冰天雪地", pinyin: "bīng tiān xuě dì", meaning: "形容冰雪漫天盖地"},
+            {text: "兵不血刃", pinyin: "bīng bù xuè rèn", meaning: "形容未经战斗就轻易取得了胜利"},
+            {text: "兵贵神速", pinyin: "bīng guì shén sù", meaning: "用兵贵在行动特别迅速"},
+            {text: "兵荒马乱", pinyin: "bīng huāng mǎ luàn", meaning: "形容战争期间社会混乱不安的景象"},
+            {text: "并驾齐驱", pinyin: "bìng jià qí qū", meaning: "比喻齐头并进，不分前后"},
+            {text: "病入膏肓", pinyin: "bìng rù gāo huāng", meaning: "形容病情严重，无法医治，比喻事情到了无法挽救的地步"},
+            {text: "波澜壮阔", pinyin: "bō lán zhuàng kuò", meaning: "比喻声势雄壮或规模巨大"},
+            {text: "博古通今", pinyin: "bó gǔ tōng jīn", meaning: "通晓古今的事情，形容知识渊博"},
+            {text: "博闻强记", pinyin: "bó wén qiáng jì", meaning: "形容知识丰富，记忆力强"},
+            {text: "捕风捉影", pinyin: "bǔ fēng zhuō yǐng", meaning: "比喻说话做事没有丝毫事实根据"},
+            {text: "不卑不亢", pinyin: "bù bēi bù kàng", meaning: "既不自卑，也不高傲，形容待人态度得体"},
+            {text: "不耻下问", pinyin: "bù chǐ xià wèn", meaning: "乐于向学问或地位比自己低的人学习，而不觉得不好意思"},
+            {text: "不打自招", pinyin: "bù dǎ zì zhāo", meaning: "旧指没有用刑就招供，比喻做了坏事或有坏的意图自我暴露出来"},
+            {text: "不得要领", pinyin: "bù dé yào lǐng", meaning: "抓不住要点或关键"},
+            {text: "不动声色", pinyin: "bù dòng shēng sè", meaning: "在紧急情况下，说话、神态仍跟平时一样没有变化，形容非常镇静"},
+            {text: "不攻自破", pinyin: "bù gōng zì pò", meaning: "不用攻击，自己就破灭或站不住脚"},
+            {text: "不共戴天", pinyin: "bù gòng dài tiān", meaning: "不愿和仇敌在一个天底下并存，形容仇恨极深"},
+            {text: "不苟言笑", pinyin: "bù gǒu yán xiào", meaning: "不随便说笑，形容态度庄重严肃"},
+            {text: "不寒而栗", pinyin: "bù hán ér lì", meaning: "不冷而发抖，形容非常恐惧"},
+            {text: "不欢而散", pinyin: "bù huān ér sàn", meaning: "很不愉快地分手"},
+            {text: "不即不离", pinyin: "bù jí bù lí", meaning: "指对人既不接近，也不疏远"},
+            {text: "不计其数", pinyin: "bù jì qí shù", meaning: "没法计算数目，形容很多"},
+            {text: "不假思索", pinyin: "bù jiǎ sī suǒ", meaning: "用不着想，形容说话做事迅速"},
+            {text: "不见经传", pinyin: "bù jiàn jīng zhuàn", meaning: "指人或事物没有什么名气"},
+            {text: "不胫而走", pinyin: "bù jìng ér zǒu", meaning: "没有腿却能跑，形容消息等传布迅速"},
+            {text: "不拘一格", pinyin: "bù jū yī gé", meaning: "不局限于一种规格或一个格局"},
+            {text: "不堪回首", pinyin: "bù kān huí shǒu", meaning: "指对过去的事情想起来就会感到痛苦，因而不忍去回忆"},
+            {text: "不堪设想", pinyin: "bù kān shè xiǎng", meaning: "未来情况不能想象，指预料事情会发展到很坏的地步"},
+            {text: "不劳而获", pinyin: "bù láo ér huò", meaning: "自己不劳动却占有别人的劳动成果"},
+            {text: "不了了之", pinyin: "bù liǎo liǎo zhī", meaning: "用不了结的办法去了结，指把事情放在一边不管，就算完事"},
+            {text: "不露声色", pinyin: "bù lù shēng sè", meaning: "心里的打算不在说话和脸色上显露出来"},
+            {text: "不伦不类", pinyin: "bù lún bù lèi", meaning: "不像这一类，也不像那一类，形容不成样子或没有道理"},
+            {text: "不谋而合", pinyin: "bù móu ér hé", meaning: "事先没有商量过，意见或行动却完全一致"},
+            {text: "不能自拔", pinyin: "bù néng zì bá", meaning: "指陷进很深的境地，难以使自己从中解脱出来"},
+            {text: "不偏不倚", pinyin: "bù piān bù yǐ", meaning: "不偏向任何一方，表示中立或公正"},
+            {text: "不期而遇", pinyin: "bù qī ér yù", meaning: "没有约定而意外地遇见"},
+            {text: "不求甚解", pinyin: "bù qiú shèn jiě", meaning: "只求知道个大概，不求彻底了解，常指学习或研究不认真、不深入"},
+            {text: "不屈不挠", pinyin: "bù qū bù náo", meaning: "比喻在压力和困难面前不屈服，表现十分顽强"},
+            {text: "不容置疑", pinyin: "bù róng zhì yí", meaning: "不允许有什么怀疑，表示论证严密，无可怀疑"},
+            {text: "不三不四", pinyin: "bù sān bù sì", meaning: "指不正派，也指不像样子"},
+            {text: "不胜枚举", pinyin: "bù shèng méi jǔ", meaning: "不能一个个地列举出来，形容数量很多"},
+            {text: "不识时务", pinyin: "bù shí shí wù", meaning: "指不认识当前重要的事态和时代的潮流"},
+            {text: "不速之客", pinyin: "bù sù zhī kè", meaning: "指没有邀请突然而来的客人"},
+            {text: "不同凡响", pinyin: "bù tóng fán xiǎng", meaning: "形容事物不平凡，很出色"},
+            {text: "不务正业", pinyin: "bù wù zhèng yè", meaning: "指丢下本职工作不做，去搞其他的事情"},
+            {text: "不相上下", pinyin: "bù xiāng shàng xià", meaning: "分不出高低好坏，形容水平相当"},
+            {text: "不屑一顾", pinyin: "bù xiè yī gù", meaning: "认为不值得一看，形容极端轻视"},
+            {text: "不省人事", pinyin: "bù xǐng rén shì", meaning: "指昏迷过去，失去知觉"},
+            {text: "不学无术", pinyin: "bù xué wú shù", meaning: "没有学问，没有本领"},
+            {text: "不言而喻", pinyin: "bù yán ér yù", meaning: "不用说话就能明白，形容道理很明显"},
+            {text: "不厌其烦", pinyin: "bù yàn qí fán", meaning: "不嫌麻烦"},
+            {text: "不遗余力", pinyin: "bù yí yú lì", meaning: "把全部力量都使出来，一点不保留"},
+            {text: "不以为然", pinyin: "bù yǐ wéi rán", meaning: "不认为是对的，表示不同意或否定"},
+            {text: "不翼而飞", pinyin: "bù yì ér fēi", meaning: "比喻东西突然丢失，也比喻消息传得极快"},
+            {text: "不约而同", pinyin: "bù yuē ér tóng", meaning: "事先没有约定而相互一致"},
+            {text: "不折不扣", pinyin: "bù zhé bù kòu", meaning: "表示完全、十足的意思"},
+            {text: "不知所措", pinyin: "bù zhī suǒ cuò", meaning: "不知道怎么办才好，形容处境为难或心神慌乱"},
+            {text: "不置可否", pinyin: "bù zhì kě fǒu", meaning: "不说行，也不说不行，指不表明态度"},
+            {text: "不自量力", pinyin: "bù zì liàng lì", meaning: "指过高地估计自己的实力"},
+            {text: "不足挂齿", pinyin: "bù zú guà chǐ", meaning: "表示不值得一提"},
+            {text: "不足为奇", pinyin: "bù zú wéi qí", meaning: "不值得奇怪，指某种事物或现象很平常，没有什么特别的"},
+            {text: "步步为营", pinyin: "bù bù wéi yíng", meaning: "军队每向前推进一步就设下一道营垒，形容进军谨慎，也比喻行动、做事谨慎"},
+            {text: "才疏学浅", pinyin: "cái shū xué qiǎn", meaning: "才学不高，学识不深"},
+            {text: "财大气粗", pinyin: "cái dà qì cū", meaning: "指富有财产，气派不凡"},
+            {text: "餐风宿露", pinyin: "cān fēng sù lù", meaning: "形容旅途或野外生活的艰苦"},
+            {text: "残羹冷炙", pinyin: "cán gēng lěng zhì", meaning: "指吃剩的饭菜，也比喻别人施舍的东西"},
+            {text: "残垣断壁", pinyin: "cán yuán duàn bì", meaning: "形容建筑物倒塌残破的景象"},
+            {text: "惨不忍睹", pinyin: "cǎn bù rěn dǔ", meaning: "凄惨得叫人不忍心看"},
+            {text: "惨绝人寰", pinyin: "cǎn jué rén huán", meaning: "世界上再没有比这更惨痛的事，形容惨痛到了极点"},
+            {text: "惨无人道", pinyin: "cǎn wú rén dào", meaning: "残酷狠毒到极点，如野兽一样"},
+            {text: "沧海桑田", pinyin: "cāng hǎi sāng tián", meaning: "大海变成桑田，桑田变成大海，比喻世事变化很大"},
+            {text: "藏龙卧虎", pinyin: "cáng lóng wò hǔ", meaning: "指隐藏着未被发现的人才，也指隐藏不露的人才"},
+            {text: "操之过急", pinyin: "cāo zhī guò jí", meaning: "处理事情过于急躁"},
+            {text: "草菅人命", pinyin: "cǎo jiān rén mìng", meaning: "把人命看得和野草一样，指任意残害人命"},
+            {text: "草木皆兵", pinyin: "cǎo mù jiē bīng", meaning: "把山上的草木都当做敌兵，形容人在惊慌时疑神疑鬼"},
+            {text: "侧目而视", pinyin: "cè mù ér shì", meaning: "斜着眼睛看人，形容憎恨或又怕又愤恨"},
+            {text: "参差不齐", pinyin: "cēn cī bù qí", meaning: "长短、高低不齐，形容水平不一或很不整齐"},
+            {text: "层出不穷", pinyin: "céng chū bù qióng", meaning: "接连不断地出现，没有穷尽"},
+            {text: "差强人意", pinyin: "chā qiáng rén yì", meaning: "大体上还能使人满意"},
+            {text: "察言观色", pinyin: "chá yán guān sè", meaning: "观察别人的说话或脸色，多指揣摸别人的心意"},
+            {text: "姹紫嫣红", pinyin: "chà zǐ yān hóng", meaning: "形容各种花朵娇艳美丽"},
+            {text: "豺狼当道", pinyin: "chái láng dāng dào", meaning: "比喻坏人当权"},
+            {text: "谄上欺下", pinyin: "chǎn shàng qī xià", meaning: "讨好上司，欺压下级"},
+            {text: "长此以往", pinyin: "cháng cǐ yǐ wǎng", meaning: "长期这样下去"},
+            {text: "长年累月", pinyin: "cháng nián lěi yuè", meaning: "形容经过了很多年月"},
+            {text: "长篇大论", pinyin: "cháng piān dà lùn", meaning: "滔滔不绝的言论或篇幅冗长的文章"},
+            {text: "长驱直入", pinyin: "cháng qū zhí rù", meaning: "指长距离不停顿的快速行进，形容进军迅猛，不可阻挡"},
+            {text: "长治久安", pinyin: "cháng zhì jiǔ ān", meaning: "形容国家长期安定、巩固"},
+            {text: "畅所欲言", pinyin: "chàng suǒ yù yán", meaning: "痛痛快快地把要说的话都说出来"},
+            {text: "车载斗量", pinyin: "chē zài dǒu liáng", meaning: "用车载，用斗量，形容数量很多，不足为奇"},
+            {text: "彻头彻尾", pinyin: "chè tóu chè wěi", meaning: "从头到尾，完完全全"},
+            {text: "沉默寡言", pinyin: "chén mò guǎ yán", meaning: "不声不响，很少说话"},
+            {text: "陈词滥调", pinyin: "chén cí làn diào", meaning: "陈腐、空泛的论调"},
+            {text: "趁火打劫", pinyin: "chèn huǒ dǎ jié", meaning: "趁人家失火时去抢劫，比喻乘人之危谋取私利"},
+            {text: "称心如意", pinyin: "chèn xīn rú yì", meaning: "形容心满意足，事情的发展完全符合心意"},
+            {text: "瞠目结舌", pinyin: "chēng mù jié shé", meaning: "瞪着眼睛说不出话来，形容窘困或惊呆的样子"},
+            {text: "成家立业", pinyin: "chéng jiā lì yè", meaning: "指男的结了婚，有职业，能独立生活"},
+            {text: "成千上万", pinyin: "chéng qiān shàng wàn", meaning: "形容数量很多"},
+            {text: "成人之美", pinyin: "chéng rén zhī měi", meaning: "成全别人的好事"},
+            {text: "成竹在胸", pinyin: "chéng zhú zài xiōng", meaning: "画竹前竹的全貌已在胸中，比喻在做事之前已经拿定主意"},
+            {text: "诚惶诚恐", pinyin: "chéng huáng chéng kǒng", meaning: "非常小心谨慎以至达到害怕不安的程度"},
+            {text: "承前启后", pinyin: "chéng qián qǐ hòu", meaning: "承接前面的，开创后来的，指继承前人事业，为后人开辟道路"},
+            {text: "城门失火，殃及池鱼", pinyin: "chéng mén shī huǒ，yāng jí chí yú", meaning: "比喻无辜被连累而遭受灾祸"},
+            {text: "乘风破浪", pinyin: "chéng fēng pò làng", meaning: "船只乘着风势破浪前进，比喻排除困难，奋勇前进"},
+            {text: "乘人之危", pinyin: "chéng rén zhī wēi", meaning: "趁人家危难的时候加以要挟或陷害"},
+            {text: "乘虚而入", pinyin: "chéng xū ér rù", meaning: "趁着虚弱疏漏的地方进入"},
+            {text: "惩前毖后", pinyin: "chéng qián bì hòu", meaning: "指批判以前所犯的错误，吸取教训，使以后谨慎些，不致再犯"},
+            {text: "惩一儆百", pinyin: "chéng yī jǐng bǎi", meaning: "惩罚一个人以警戒众人"},
+            {text: "吃一堑，长一智", pinyin: "chī yī qiàn，zhǎng yī zhì", meaning: "受一次挫折，增长一分见识"},
+            {text: "痴心妄想", pinyin: "chī xīn wàng xiǎng", meaning: "一心想着不可能实现的事"},
+            {text: "驰名中外", pinyin: "chí míng zhōng wài", meaning: "形容名声传播得极远"},
+            {text: "持之以恒", pinyin: "chí zhī yǐ héng", meaning: "长久坚持下去"},
+            {text: "叱咤风云", pinyin: "chì zhà fēng yún", meaning: "一声呼喊、怒喝，可以使风云翻腾起来，形容威力极大"},
+            {text: "赤膊上阵", pinyin: "chì bó shàng zhèn", meaning: "光着膀子上阵，比喻亲身上场，不加掩饰地进行活动"},
+            {text: "赤胆忠心", pinyin: "chì dǎn zhōng xīn", meaning: "形容十分忠诚"},
+            {text: "赤手空拳", pinyin: "chì shǒu kōng quán", meaning: "两手空空，比喻没有任何依靠"},
+            {text: "冲锋陷阵", pinyin: "chōng fēng xiàn zhèn", meaning: "向敌人冲锋，深入敌人阵地，形容作战英勇"},
+            {text: "重蹈覆辙", pinyin: "chóng dǎo fù zhé", meaning: "重新走上翻过车的老路，比喻不吸取教训，再走失败的老路"},
+            {text: "重见天日", pinyin: "chóng jiàn tiān rì", meaning: "重新看到了天和太阳，比喻脱离黑暗，重见光明"},
+            {text: "重温旧梦", pinyin: "chóng wēn jiù mèng", meaning: "比喻再经历一次过去的光景"},
+            {text: "重整旗鼓", pinyin: "chóng zhěng qí gǔ", meaning: "比喻失败之后，整顿力量，准备再干"},
+            {text: "崇山峻岭", pinyin: "chóng shān jùn lǐng", meaning: "高大险峻的山岭"},
+            {text: "宠辱不惊", pinyin: "chǒng rǔ bù jīng", meaning: "受宠受辱都不在乎，指不因个人得失而动心"},
+            {text: "愁眉不展", pinyin: "chóu méi bù zhǎn", meaning: "由于忧愁而双眉紧锁，形容心事重重的样子"},
+            {text: "踌躇满志", pinyin: "chóu chú mǎn zhì", meaning: "形容对自己取得的成就非常得意"},
+            {text: "出尔反尔", pinyin: "chū ěr fǎn ěr", meaning: "原意是你怎样做，就会得到怎样的后果，现指人的言行反复无常，前后自相矛盾"},
+            {text: "出类拔萃", pinyin: "chū lèi bá cuì", meaning: "超出同类之上，多指人的品德才能"},
+            {text: "出谋划策", pinyin: "chū móu huà cè", meaning: "制定计谋策略，指为人出主意"},
+            {text: "出其不意", pinyin: "chū qí bù yì", meaning: "趁对方没有意料到就采取行动"},
+            {text: "出奇制胜", pinyin: "chū qí zhì shèng", meaning: "用奇兵或奇计战胜敌人，比喻用对方意料不到的方法取得胜利"},
+            {text: "出人头地", pinyin: "chū rén tóu dì", meaning: "指高人一等，形容德才超众或成就突出"},
+            {text: "出神入化", pinyin: "chū shén rù huà", meaning: "形容技艺达到了绝妙的境界"},
+            {text: "出生入死", pinyin: "chū shēng rù sǐ", meaning: "原意是从出生到死去，后形容冒着生命危险，不顾个人安危"},
+            {text: "出头露面", pinyin: "chū tóu lòu miàn", meaning: "指在公开场合出现，也指出风头"},
+            {text: "初出茅庐", pinyin: "chū chū máo lú", meaning: "原比喻新露头脚，现比喻刚离开家庭或学校出来工作，缺乏经验"},
+            {text: "初露锋芒", pinyin: "chū lù fēng máng", meaning: "比喻刚开始显示出力量或才能"},
+            {text: "除暴安良", pinyin: "chú bào ān liáng", meaning: "铲除强暴，安抚善良的人民"},
+            {text: "处心积虑", pinyin: "chǔ xīn jī lǜ", meaning: "形容蓄谋已久"},
+            {text: "触景生情", pinyin: "chù jǐng shēng qíng", meaning: "受到眼前景物的触动，引起联想，产生某种感情"},
+            {text: "触类旁通", pinyin: "chù lèi páng tōng", meaning: "掌握了某一事物的知识或规律，进而推知同类事物的知识或规律"},
+            {text: "川流不息", pinyin: "chuān liú bù xī", meaning: "形容行人、车马等像水流一样连续不断"},
+            {text: "穿凿附会", pinyin: "chuān záo fù huì", meaning: "把讲不通的或不相干的道理、事情硬扯在一起进行解释"},
+            {text: "吹毛求疵", pinyin: "chuī máo qiú cī", meaning: "吹开皮上的毛寻疤痕，比喻故意挑剔别人的缺点，寻找差错"},
+            {text: "垂手可得", pinyin: "chuí shǒu kě dé", meaning: "手不动就能得到，形容毫不费力"},
+            {text: "垂头丧气", pinyin: "chuí tóu sàng qì", meaning: "形容因失败或不顺利而情绪低落、萎靡不振的样子"},
+            {text: "垂涎三尺", pinyin: "chuí xián sān chǐ", meaning: "口水挂下三尺长，形容极其贪婪的样子，也形容非常眼热"},
+            {text: "春风得意", pinyin: "chūn fēng dé yì", meaning: "旧时形容考中进士后的兴奋心情，后形容职位升迁顺利"},
+            {text: "春华秋实", pinyin: "chūn huá qiū shí", meaning: "春天开花，秋天结果，比喻人的文采和德行，现也比喻学习有成果"},
+            {text: "唇枪舌剑", pinyin: "chún qiāng shé jiàn", meaning: "舌如剑，唇像枪，形容辩论激烈，言词锋利，像枪剑交锋一样"},
+            {text: "唇亡齿寒", pinyin: "chún wáng chǐ hán", meaning: "嘴唇没有了，牙齿就会感到寒冷，比喻利害密切相关"},
+            {text: "蠢蠢欲动", pinyin: "chǔn chǔn yù dòng", meaning: "指敌人准备进行攻击或坏人策划破坏活动"},
+            {text: "绰绰有余", pinyin: "chuò chuò yǒu yú", meaning: "形容房屋或钱财非常宽裕，用不完"},
+            {text: "辞旧迎新", pinyin: "cí jiù yíng xīn", meaning: "告别旧的一年，迎接新的一年"},
+            {text: "此起彼伏", pinyin: "cǐ qǐ bǐ fú", meaning: "这里起来，那里下去，形容接连不断"},
+            {text: "从容不迫", pinyin: "cóng róng bù pò", meaning: "不慌不忙，沉着镇定"},
+            {text: "爱财如命", pinyin: "ài cái rú mìng", meaning: "形容非常吝啬或贪财"},
+        {text: "安分守己", pinyin: "ān fèn shǒu jǐ", meaning: "规矩老实，不做违法乱纪的事"},
+        {text: "暗无天日", pinyin: "àn wú tiān rì", meaning: "形容社会极端黑暗"},
+        {text: "八仙过海", pinyin: "bā xiān guò hǎi", meaning: "比喻各自施展本领，互相竞赛"},
+        {text: "百感交集", pinyin: "bǎi gǎn jiāo jí", meaning: "各种感触交织在一起，形容心情复杂"},
+        {text: "半信半疑", pinyin: "bàn xìn bàn yí", meaning: "有点相信，又有点怀疑"},
+        {text: "饱经风霜", pinyin: "bǎo jīng fēng shuāng", meaning: "形容经历过很多艰难困苦"},
+        {text: "暴跳如雷", pinyin: "bào tiào rú léi", meaning: "形容大怒时暴躁的样子"},
+        {text: "背井离乡", pinyin: "bèi jǐng lí xiāng", meaning: "离开家乡，到外地生活"},
+        {text: "本末倒置", pinyin: "běn mò dào zhì", meaning: "比喻把主次、轻重的位置弄颠倒了"},
+        {text: "比比皆是", pinyin: "bǐ bǐ jiē shì", meaning: "到处都是，形容非常多"},
+        {text: "闭月羞花", pinyin: "bì yuè xiū huā", meaning: "形容女子容貌美丽"},
+        {text: "变幻莫测", pinyin: "biàn huàn mò cè", meaning: "变化多端，难以预测"},
+        {text: "别具一格", pinyin: "bié jù yī gé", meaning: "另有一种独特的风格"},
+        {text: "冰清玉洁", pinyin: "bīng qīng yù jié", meaning: "比喻人品高尚纯洁"},
+        {text: "不卑不亢", pinyin: "bù bēi bù kàng", meaning: "既不自卑，也不高傲，形容态度得体"},
+        {text: "不耻下问", pinyin: "bù chǐ xià wèn", meaning: "不以向地位低的人请教为耻"},
+        {text: "不共戴天", pinyin: "bù gòng dài tiān", meaning: "形容仇恨极深，不能共存"},
+        {text: "不寒而栗", pinyin: "bù hán ér lì", meaning: "形容非常恐惧"},
+        {text: "不即不离", pinyin: "bù jí bù lí", meaning: "既不亲近，也不疏远"},
+        {text: "不胫而走", pinyin: "bù jìng ér zǒu", meaning: "形容消息传播很快"},
+        {text: "不堪设想", pinyin: "bù kān shè xiǎng", meaning: "事情的结果不能想象，指很严重"},
+        {text: "不伦不类", pinyin: "bù lún bù lèi", meaning: "不像样，不合规范"},
+        {text: "不谋而合", pinyin: "bù móu ér hé", meaning: "没有商量而意见一致"},
+        {text: "不期而遇", pinyin: "bù qī ér yù", meaning: "没有约定而意外相遇"},
+        {text: "不屈不挠", pinyin: "bù qū bù náo", meaning: "形容意志坚强，不轻易屈服"},
+        {text: "不容置疑", pinyin: "bù róng zhì yí", meaning: "不容许有什么怀疑"},
+        {text: "不速之客", pinyin: "bù sù zhī kè", meaning: "指没有邀请突然而来的客人"},
+        {text: "不同凡响", pinyin: "bù tóng fán xiǎng", meaning: "形容事物不平凡，很出色"},
+        {text: "不务正业", pinyin: "bù wù zhèng yè", meaning: "不从事正当的职业"},
+        {text: "不相上下", pinyin: "bù xiāng shàng xià", meaning: "分不出高低好坏"},
+        {text: "不学无术", pinyin: "bù xué wú shù", meaning: "没有学问，没有本领"},
+        {text: "不言而喻", pinyin: "bù yán ér yù", meaning: "不用说就能明白"},
+        {text: "不以为然", pinyin: "bù yǐ wéi rán", meaning: "不认为是对的，表示不同意"},
+        {text: "不翼而飞", pinyin: "bù yì ér fēi", meaning: "形容东西突然不见了"},
+        {text: "不约而同", pinyin: "bù yuē ér tóng", meaning: "没有商量而行动一致"},
+        {text: "不择手段", pinyin: "bù zé shǒu duàn", meaning: "为了达到目的，什么手段都使得出来"},
+        {text: "不自量力", pinyin: "bù zì liàng lì", meaning: "过高估计自己的能力"},
+        {text: "步步高升", pinyin: "bù bù gāo shēng", meaning: "形容职位不断上升"},
+        {text: "才疏学浅", pinyin: "cái shū xué qiǎn", meaning: "才能不高，学识浅薄"},
+        {text: "惨不忍睹", pinyin: "cǎn bù rěn dǔ", meaning: "悲惨得让人不忍心看"},
+        {text: "沧海桑田", pinyin: "cāng hǎi sāng tián", meaning: "比喻世事变化很大"},
+        {text: "藏污纳垢", pinyin: "cáng wū nà gòu", meaning: "比喻包容坏人坏事"},
+        {text: "操之过急", pinyin: "cāo zhī guò jí", meaning: "处理事情过于急躁"},
+        {text: "草木皆兵", pinyin: "cǎo mù jiē bīng", meaning: "形容人在惊慌时疑神疑鬼"},
+        {text: "差强人意", pinyin: "chā qiáng rén yì", meaning: "勉强使人满意"},
+        {text: "长驱直入", pinyin: "cháng qū zhí rù", meaning: "形容进军顺利，毫无阻挡"},
+        {text: "畅所欲言", pinyin: "chàng suǒ yù yán", meaning: "痛痛快快地说出想说的话"},
+        {text: "车水马龙", pinyin: "chē shuǐ mǎ lóng", meaning: "形容车马往来不绝，繁华热闹"},
+        {text: "沉默寡言", pinyin: "chén mò guǎ yán", meaning: "不声不响，很少说话"},
+        {text: "称心如意", pinyin: "chèn xīn rú yì", meaning: "完全符合心意"},
+        {text: "成家立业", pinyin: "chéng jiā lì yè", meaning: "结婚成家，建立事业"},
+        {text: "成群结队", pinyin: "chéng qún jié duì", meaning: "结成一群群、一队队"},
+        {text: "承前启后", pinyin: "chéng qián qǐ hòu", meaning: "继承前人的，开创未来的"},
+        {text: "持之以恒", pinyin: "chí zhī yǐ héng", meaning: "长久坚持下去"},
+        {text: "赤手空拳", pinyin: "chì shǒu kōng quán", meaning: "形容两手空空，没有任何武器"},
+        {text: "冲锋陷阵", pinyin: "chōng fēng xiàn zhèn", meaning: "形容作战勇猛"},
+        {text: "重蹈覆辙", pinyin: "chóng dǎo fù zhé", meaning: "比喻不吸取教训，再走失败的老路"},
+        {text: "愁眉不展", pinyin: "chóu méi bù zhǎn", meaning: "形容心事重重的样子"},
+        {text: "出类拔萃", pinyin: "chū lèi bá cuì", meaning: "超出同类之上"},
+        {text: "出其不意", pinyin: "chū qí bù yì", meaning: "趁对方没有意料到就采取行动"},
+        {text: "出奇制胜", pinyin: "chū qí zhì shèng", meaning: "用对方意想不到的方法取胜"},
+        {text: "触景生情", pinyin: "chù jǐng shēng qíng", meaning: "看到眼前的景物而引发某种感情"},
+        {text: "触目惊心", pinyin: "chù mù jīng xīn", meaning: "看到某种严重情况而内心震惊"},
+        {text: "川流不息", pinyin: "chuān liú bù xī", meaning: "形容行人、车马等像水流一样连续不断"},
+        {text: "吹毛求疵", pinyin: "chuī máo qiú cī", meaning: "故意挑剔别人的缺点"},
+        {text: "垂头丧气", pinyin: "chuí tóu sàng qì", meaning: "形容因失败或不顺利而情绪低落"},
+        {text: "春华秋实", pinyin: "chūn huá qiū shí", meaning: "比喻文采和德行，也比喻因果关系"},
+        {text: "唇亡齿寒", pinyin: "chún wáng chǐ hán", meaning: "比喻利害相关"},
+        {text: "从容不迫", pinyin: "cóng róng bù pò", meaning: "不慌不忙，沉着镇定"},
+        {text: "粗心大意", pinyin: "cū xīn dà yì", meaning: "做事马虎，不细心"},
+        {text: "大材小用", pinyin: "dà cái xiǎo yòng", meaning: "把大材料当小材料用，比喻人才使用不当"},
+        {text: "大公无私", pinyin: "dà gōng wú sī", meaning: "办事公正，没有私心"},
+        {text: "大器晚成", pinyin: "dà qì wǎn chéng", meaning: "能担当重任的人物要经过长期锻炼"},
+        {text: "大显身手", pinyin: "dà xiǎn shēn shǒu", meaning: "充分显示出本领和才能"},
+        {text: "大义灭亲", pinyin: "dà yì miè qīn", meaning: "为了维护正义，对犯罪的亲属不徇私情"},
+        {text: "单刀直入", pinyin: "dān dāo zhí rù", meaning: "比喻说话直截了当，不绕弯子"},
+        {text: "当机立断", pinyin: "dāng jī lì duàn", meaning: "在紧要时刻立即做出决断"},
+        {text: "道听途说", pinyin: "dào tīng tú shuō", meaning: "路上听来的话，指没有根据的传闻"},
+        {text: "得寸进尺", pinyin: "dé cùn jìn chǐ", meaning: "比喻贪得无厌"},
+        {text: "得过且过", pinyin: "dé guò qiě guò", meaning: "只要能够过得去，就这样过下去"},
+        {text: "德高望重", pinyin: "dé gāo wàng zhòng", meaning: "道德高尚，名望很大"},
+        {text: "滴水穿石", pinyin: "dī shuǐ chuān shí", meaning: "比喻只要有恒心，不断努力，事情就能成功"},
+        {text: "地大物博", pinyin: "dì dà wù bó", meaning: "指国家疆土辽阔，资源丰富"},
+        {text: "颠倒黑白", pinyin: "diān dǎo hēi bái", meaning: "把黑的说成白的，白的说成黑的"},
+        {text: "调虎离山", pinyin: "diào hǔ lí shān", meaning: "比喻用计使对方离开原来的地方"},
+        {text: "东山再起", pinyin: "dōng shān zài qǐ", meaning: "比喻失势之后又重新得势"},
+        {text: "东张西望", pinyin: "dōng zhāng xī wàng", meaning: "形容到处张望"},
+        {text: "斗志昂扬", pinyin: "dòu zhì áng yáng", meaning: "斗争的意志旺盛"},
+        {text: "独出心裁", pinyin: "dú chū xīn cái", meaning: "想出的办法与众不同"},
+        {text: "独树一帜", pinyin: "dú shù yī zhì", meaning: "比喻独特新奇，自成一家"},
+        {text: "对答如流", pinyin: "duì dá rú liú", meaning: "回答问话像流水一样快"},
+        {text: "多才多艺", pinyin: "duō cái duō yì", meaning: "具有多方面的才能和技艺"},
+        {text: "多多益善", pinyin: "duō duō yì shàn", meaning: "越多越好"},
+        {text: "咄咄逼人", pinyin: "duō duō bī rén", meaning: "形容气势汹汹，盛气凌人"},
+        {text: "恶贯满盈", pinyin: "è guàn mǎn yíng", meaning: "罪恶极多，已到末日"},
+        {text: "恩将仇报", pinyin: "ēn jiāng chóu bào", meaning: "拿仇恨回报所受的恩惠"},
+        {text: "耳闻目睹", pinyin: "ěr wén mù dǔ", meaning: "亲耳听到，亲眼看见"},
+        {text: "发人深省", pinyin: "fā rén shēn xǐng", meaning: "启发人深刻思考，有所醒悟"},
+        {text: "翻山越岭", pinyin: "fān shān yuè lǐng", meaning: "形容野外工作或旅途的辛苦"},
+        {text: "翻天覆地", pinyin: "fān tiān fù dì", meaning: "形容变化巨大而彻底"},
+        {text: "繁荣昌盛", pinyin: "fán róng chāng shèng", meaning: "指国家兴旺发达，欣欣向荣"},
+        {text: "反败为胜", pinyin: "fǎn bài wéi shèng", meaning: "扭转败局，变为胜利"},
+        {text: "返老还童", pinyin: "fǎn lǎo huán tóng", meaning: "由衰老恢复青春"},
+        {text: "方兴未艾", pinyin: "fāng xīng wèi ài", meaning: "事物正在发展，尚未达到止境"},
+        {text: "放虎归山", pinyin: "fàng hǔ guī shān", meaning: "比喻放走敌人，留下后患"},
+        {text: "飞蛾扑火", pinyin: "fēi é pū huǒ", meaning: "比喻自取灭亡"},
+        {text: "飞黄腾达", pinyin: "fēi huáng téng dá", meaning: "形容官职升得很快"},
+        {text: "废寝忘食", pinyin: "fèi qǐn wàng shí", meaning: "形容专心努力"},
+        {text: "分道扬镳", pinyin: "fēn dào yáng biāo", meaning: "比喻目标不同，各走各的路"},
+        {text: "奋不顾身", pinyin: "fèn bù gù shēn", meaning: "奋勇向前，不考虑个人安危"},
+        {text: "丰衣足食", pinyin: "fēng yī zú shí", meaning: "形容生活富裕"},
+        {text: "风驰电掣", pinyin: "fēng chí diàn chè", meaning: "形容非常迅速，像风吹电闪一样"},
+        {text: "风吹草动", pinyin: "fēng chuī cǎo dòng", meaning: "比喻微小的变动"},
+        {text: "风平浪静", pinyin: "fēng píng làng jìng", meaning: "指没有风浪，比喻平静无事"},
+        {text: "风雨同舟", pinyin: "fēng yǔ tóng zhōu", meaning: "比喻共同经历患难"},
+        {text: "锋芒毕露", pinyin: "fēng máng bì lù", meaning: "锐气和才华全都显露出来"},
+        {text: "奉公守法", pinyin: "fèng gōng shǒu fǎ", meaning: "奉行公事，遵守法令"},
+        {text: "扶老携幼", pinyin: "fú lǎo xié yòu", meaning: "搀着老人，领着小孩"},
+        {text: "浮想联翩", pinyin: "fú xiǎng lián piān", meaning: "许多想象不断涌现出来"},
+        {text: "俯首帖耳", pinyin: "fǔ shǒu tiē ěr", meaning: "形容卑屈驯服的样子"},
+        {text: "釜底抽薪", pinyin: "fǔ dǐ chōu xīn", meaning: "比喻从根本上解决问题"},
+        {text: "负荆请罪", pinyin: "fù jīng qǐng zuì", meaning: "表示向人认错赔罪"},
+        {text: "改过自新", pinyin: "gǎi guò zì xīn", meaning: "改正错误，重新做起"},
+        {text: "改头换面", pinyin: "gǎi tóu huàn miàn", meaning: "比喻只改外表和形式，内容实质不变"},
+        {text: "改邪归正", pinyin: "gǎi xié guī zhèng", meaning: "不再做坏事，走上正路"},
+        {text: "甘拜下风", pinyin: "gān bài xià fēng", meaning: "表示真心佩服，自认不如"},
+        {text: "肝胆相照", pinyin: "gān dǎn xiāng zhào", meaning: "比喻以真心相见"},
+        {text: "高朋满座", pinyin: "gāo péng mǎn zuò", meaning: "高贵的朋友坐满了席位，形容宾客很多"},
+        {text: "高瞻远瞩", pinyin: "gāo zhān yuǎn zhǔ", meaning: "站得高，看得远，比喻眼光远大"},
+        {text: "歌功颂德", pinyin: "gē gōng sòng dé", meaning: "颂扬功绩和德行"},
+        {text: "各得其所", pinyin: "gè dé qí suǒ", meaning: "指每个人或事物都得到恰当的位置或安排"},
+        {text: "根深蒂固", pinyin: "gēn shēn dì gù", meaning: "比喻基础深厚，不容易动摇"},
+        {text: "功成名就", pinyin: "gōng chéng míng jiù", meaning: "功绩取得了，名声也有了"},
+        {text: "攻无不克", pinyin: "gōng wú bù kè", meaning: "没有攻占不下来的，形容力量无比强大"},
+        {text: "孤注一掷", pinyin: "gū zhù yī zhì", meaning: "把所有的钱一次押上去，决一输赢"},
+        {text: "古往今来", pinyin: "gǔ wǎng jīn lái", meaning: "从古到今，泛指很长一段时间"},
+        {text: "骨肉相连", pinyin: "gǔ ròu xiāng lián", meaning: "像骨头和肉一样互相连接着"},
+        {text: "顾全大局", pinyin: "gù quán dà jú", meaning: "从整体的利益着想，使不遭受损害"},
+        {text: "刮目相看", pinyin: "guā mù xiāng kàn", meaning: "用新的眼光来看待"},
+        {text: "瓜熟蒂落", pinyin: "guā shú dì luò", meaning: "时机一旦成熟，事情自然成功"},
+        {text: "光明磊落", pinyin: "guāng míng lěi luò", meaning: "胸怀坦白，正大光明"},
+        {text: "光明正大", pinyin: "guāng míng zhèng dà", meaning: "心怀坦白，言行正派"},
+        {text: "鬼斧神工", pinyin: "guǐ fǔ shén gōng", meaning: "形容建筑、雕塑等技艺的精巧"},
+        {text: "海阔天空", pinyin: "hǎi kuò tiān kōng", meaning: "形容大自然的广阔，比喻言谈议论等漫无边际"},
+        {text: "海誓山盟", pinyin: "hǎi shì shān méng", meaning: "指男女相爱时立下的誓言"},
+        {text: "邯郸学步", pinyin: "hán dān xué bù", meaning: "比喻模仿人不到家，反把原来自己会的东西忘了"},
+        {text: "含辛茹苦", pinyin: "hán xīn rú kǔ", meaning: "形容忍受辛苦或吃尽辛苦"},
+        {text: "汗流浃背", pinyin: "hàn liú jiā bèi", meaning: "形容非常恐惧或非常害怕"},
+        {text: "好高骛远", pinyin: "hào gāo wù yuǎn", meaning: "比喻不切实际地追求过高过远的目标"},
+        {text: "好逸恶劳", pinyin: "hào yì wù láo", meaning: "贪图安逸，厌恶劳动"},
+        {text: "浩如烟海", pinyin: "hào rú yān hǎi", meaning: "形容典籍、图书等极为丰富"},
+        {text: "和蔼可亲", pinyin: "hé ǎi kě qīn", meaning: "态度温和，容易接近"},
+        {text: "和颜悦色", pinyin: "hé yán yuè sè", meaning: "脸色和蔼喜悦，形容和善可亲"},
+        {text: "鹤立鸡群", pinyin: "hè lì jī qún", meaning: "比喻一个人的仪表或才能在周围一群人里显得很突出"},
+        {text: "横冲直撞", pinyin: "héng chōng zhí zhuàng", meaning: "乱冲乱撞，蛮横无理"},
+        {text: "哄堂大笑", pinyin: "hōng táng dà xiào", meaning: "形容全屋子的人同时大笑"},
+        {text: "后顾之忧", pinyin: "hòu gù zhī yōu", meaning: "指在前进过程中，担心后方发生问题"},
+        {text: "后来居上", pinyin: "hòu lái jū shàng", meaning: "后来的超过先前的"},
+        {text: "后起之秀", pinyin: "hòu qǐ zhī xiù", meaning: "后来出现的或新成长起来的优秀人物"},
+        {text: "厚此薄彼", pinyin: "hòu cǐ bó bǐ", meaning: "重视或优待一方，轻视或怠慢另一方"},
+        {text: "囫囵吞枣", pinyin: "hú lún tūn zǎo", meaning: "比喻对事物不加分析思考"},
+        {text: "狐假虎威", pinyin: "hú jiǎ hǔ wēi", meaning: "比喻依仗别人的势力欺压人"},
+        {text: "虎头蛇尾", pinyin: "hǔ tóu shé wěi", meaning: "比喻开始时声势很大，到后来劲头很小"},
+        {text: "花言巧语", pinyin: "huā yán qiǎo yǔ", meaning: "原指铺张修饰、内容空泛的言语或文辞"},
+        {text: "画龙点睛", pinyin: "huà lóng diǎn jīng", meaning: "比喻写文章或讲话时，在关键处用几句话点明实质"},
+        {text: "画蛇添足", pinyin: "huà shé tiān zú", meaning: "比喻做了多余的事，非但无益，反而不合适"},
+        {text: "焕然一新", pinyin: "huàn rán yī xīn", meaning: "改变旧面貌，出现崭新的气象"},
+        {text: "恍然大悟", pinyin: "huǎng rán dà wù", meaning: "形容一下子明白过来"},
+        {text: "挥金如土", pinyin: "huī jīn rú tǔ", meaning: "形容极端挥霍浪费"},
+        {text: "回光返照", pinyin: "huí guāng fǎn zhào", meaning: "比喻人死前精神突然兴奋"},
+        {text: "回味无穷", pinyin: "huí wèi wú qióng", meaning: "比喻回想某一事物，越想越觉得有意思"},
+        {text: "绘声绘色", pinyin: "huì shēng huì sè", meaning: "形容叙述或描写生动逼真"},
+        {text: "浑水摸鱼", pinyin: "hún shuǐ mō yú", meaning: "比喻乘混乱的时候从中捞取利益"},
+        {text: "魂飞魄散", pinyin: "hún fēi pò sàn", meaning: "形容惊恐万分，极端害怕"},
+        {text: "火中取栗", pinyin: "huǒ zhōng qǔ lì", meaning: "比喻受人利用，冒险出力却一无所得"},
+        {text: "货真价实", pinyin: "huò zhēn jià shí", meaning: "货物不是冒牌的，价钱也是实在的"},
+        {text: "饥寒交迫", pinyin: "jī hán jiāo pò", meaning: "衣食无着，又饿又冷"},
+        {text: "鸡犬不宁", pinyin: "jī quǎn bù níng", meaning: "形容骚扰得厉害，连鸡狗都不得安宁"},
+        {text: "积少成多", pinyin: "jī shǎo chéng duō", meaning: "积累少量的东西，能成为巨大的数量"},
+        {text: "急中生智", pinyin: "jí zhōng shēng zhì", meaning: "紧急的时候，猛然想出办法"},
+        {text: "集思广益", pinyin: "jí sī guǎng yì", meaning: "集中群众的智慧，广泛吸收有益的意见"},
+        {text: "记忆犹新", pinyin: "jì yì yóu xīn", meaning: "过去的事，至今印象还非常清楚"},
+        {text: "家喻户晓", pinyin: "jiā yù hù xiǎo", meaning: "家家户户都知道"},
+        {text: "驾轻就熟", pinyin: "jià qīng jiù shú", meaning: "比喻对某事有经验，很熟悉，做起来容易"},
+        {text: "见多识广", pinyin: "jiàn duō shí guǎng", meaning: "见过的多，知道的广"},
+        {text: "见义勇为", pinyin: "jiàn yì yǒng wéi", meaning: "看到正义的事，就勇敢地去做"},
+        {text: "将计就计", pinyin: "jiāng jì jiù jì", meaning: "利用对方所用的计策，反过来对付对方"},
+        {text: "交头接耳", pinyin: "jiāo tóu jiē ěr", meaning: "形容两个人凑近低声交谈"},
+        {text: "脚踏实地", pinyin: "jiǎo tà shí dì", meaning: "比喻做事踏实，认真"},
+        {text: "叫苦连天", pinyin: "jiào kǔ lián tiān", meaning: "不住地叫苦，形容十分痛苦"},
+        {text: "接二连三", pinyin: "jiē èr lián sān", meaning: "一个接着一个，接连不断"},
+        {text: "捷足先登", pinyin: "jié zú xiān dēng", meaning: "比喻行动快的人先达到目的"},
+        {text: "竭尽全力", pinyin: "jié jìn quán lì", meaning: "用尽全部力量"},
+        {text: "解囊相助", pinyin: "jiě náng xiāng zhù", meaning: "拿出财物帮助别人"},
+        {text: "金玉良言", pinyin: "jīn yù liáng yán", meaning: "比喻非常宝贵的劝告或教诲"},
+        {text: "津津有味", pinyin: "jīn jīn yǒu wèi", meaning: "指吃得很有味道或谈得很有兴趣"},
+        {text: "锦上添花", pinyin: "jǐn shàng tiān huā", meaning: "比喻好上加好，美上添美"},
+        {text: "惊慌失措", pinyin: "jīng huāng shī cuò", meaning: "由于惊慌，一下子不知怎么办才好"},
+        {text: "惊涛骇浪", pinyin: "jīng tāo hài làng", meaning: "比喻险恶的环境或尖锐激烈的斗争"},
+        {text: "惊心动魄", pinyin: "jīng xīn dòng pò", meaning: "使人神魂震惊"},
+        {text: "精打细算", pinyin: "jīng dǎ xì suàn", meaning: "精密地计划，详细地计算"},
+        {text: "精益求精", pinyin: "jīng yì qiú jīng", meaning: "好了还求更好"},
+        {text: "井井有条", pinyin: "jǐng jǐng yǒu tiáo", meaning: "形容说话办事有条有理"},
+        {text: "炯炯有神", pinyin: "jiǒng jiǒng yǒu shén", meaning: "形容人的眼睛发亮，很有精神"},
+        {text: "九牛一毛", pinyin: "jiǔ niú yī máo", meaning: "比喻极大数量中极微小的数量"},
+        {text: "救死扶伤", pinyin: "jiù sǐ fú shāng", meaning: "形容医务工作者全心全意为人民服务的精神"},
+        {text: "居安思危", pinyin: "jū ān sī wēi", meaning: "虽然处在平安的环境里，也想到有出现危险的可能"},
+        {text: "举不胜举", pinyin: "jǔ bù shèng jǔ", meaning: "列举也列举不完，形容数量很多"},
+        {text: "举世闻名", pinyin: "jǔ shì wén míng", meaning: "全世界都知道，形容非常著名"},
+        {text: "举一反三", pinyin: "jǔ yī fǎn sān", meaning: "从一件事情类推而知道许多事情"},
+        {text: "聚精会神", pinyin: "jù jīng huì shén", meaning: "形容精神高度集中"},
+        {text: "开诚布公", pinyin: "kāi chéng bù gōng", meaning: "指以诚心待人，坦白无私"},
+        {text: "开门见山", pinyin: "kāi mén jiàn shān", meaning: "比喻说话或写文章直截了当谈本题"},
+        {text: "开源节流", pinyin: "kāi yuán jié liú", meaning: "比喻增加收入，节省开支"},
+        {text: "侃侃而谈", pinyin: "kǎn kǎn ér tán", meaning: "理直气壮、从容不迫地说话"},
+        {text: "刻不容缓", pinyin: "kè bù róng huǎn", meaning: "指形势紧迫，一刻也不允许拖延"},
+        {text: "口若悬河", pinyin: "kǒu ruò xuán hé", meaning: "形容能说会辩，说起来没个完"},
+        {text: "苦口婆心", pinyin: "kǔ kǒu pó xīn", meaning: "比喻善意而又耐心地劝导"},
+        {text: "脍炙人口", pinyin: "kuài zhì rén kǒu", meaning: "比喻好的诗文受到人们的称赞和传诵"},
+        {text: "滥竽充数", pinyin: "làn yú chōng shù", meaning: "比喻无本领的冒充有本领，次货冒充好货"},
+        {text: "狼狈为奸", pinyin: "láng bèi wéi jiān", meaning: "比喻互相勾结干坏事"},
+        {text: "劳苦功高", pinyin: "láo kǔ gōng gāo", meaning: "出了很多力，吃了很多苦，立下了很大的功劳"},
+        {text: "老马识途", pinyin: "lǎo mǎ shí tú", meaning: "比喻有经验的人对事情比较熟悉"},
+        {text: "乐极生悲", pinyin: "lè jí shēng bēi", meaning: "高兴到极点时，发生使人悲伤的事"},
+        {text: "雷厉风行", pinyin: "léi lì fēng xíng", meaning: "比喻执行政策法令严厉迅速"},
+        {text: "力不从心", pinyin: "lì bù cóng xīn", meaning: "心里想做，可是力量够不上"},
+        {text: "力挽狂澜", pinyin: "lì wǎn kuáng lán", meaning: "比喻尽力挽回危险的局势"},
+        {text: "历历在目", pinyin: "lì lì zài mù", meaning: "指远方的景物看得清清楚楚"},
+        {text: "两全其美", pinyin: "liǎng quán qí měi", meaning: "做一件事顾全到双方，使两方面都得到好处"},
+        {text: "量力而行", pinyin: "liàng lì ér xíng", meaning: "按照自己力量的大小去做，不要勉强"},
+        {text: "了如指掌", pinyin: "liǎo rú zhǐ zhǎng", meaning: "形容对事物了解得非常清楚"},
+        {text: "临危不惧", pinyin: "lín wēi bù jù", meaning: "遇到危难的时候，一点也不怕"},
+        {text: "淋漓尽致", pinyin: "lín lí jìn zhì", meaning: "形容文章或说话表达得非常充分、透彻"},
+        {text: "琳琅满目", pinyin: "lín láng mǎn mù", meaning: "满眼都是珍贵的东西，形容美好的事物很多"},
+        {text: "流连忘返", pinyin: "liú lián wàng fǎn", meaning: "玩乐时留恋不愿离开"},
+        {text: "龙飞凤舞", pinyin: "lóng fēi fèng wǔ", meaning: "原形容山势的蜿蜒雄壮，后也形容书法笔势有力"},
+        {text: "炉火纯青", pinyin: "lú huǒ chún qīng", meaning: "比喻功夫达到了纯熟完美的境界"},
+        {text: "络绎不绝", pinyin: "luò yì bù jué", meaning: "形容行人车马来来往往，接连不断"},
+
+        ]
+
+        // 游戏状态
+        const gameState = {
+            score: 0,
+            isPlaying: false,
+            speed: 0.5,
+            maxActiveIdioms: 3,
+            unlearnedIdioms: [],
+            activeIdioms: [],
+            colors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F06292', '#7986CB', '#9575CD', '#64B5F6', '#4DB6AC'],
+            lastSpawnTime: 0,
+            spawnInterval: 3000,
+            currentReadingIndex: -1,
+            isReading: false,
+            feedbackTimeout: null,
+            pinyinTimeout: null
+        };
+
+        // DOM元素
+        const elements = {
+            gameArea: document.getElementById('game-area'),
+            unlearnedArea: document.getElementById('unlearned-area'),
+            scoreBoard: document.getElementById('score-board'),
+            startBtn: document.getElementById('start-btn'),
+            pauseBtn: document.getElementById('pause-btn'),
+            replayBtn: document.getElementById('replay-btn'),
+            feedback: document.getElementById('feedback'),
+            pinyinDisplay: document.getElementById('pinyin-display'),
+            meaningDisplay: document.getElementById('meaning-display'),
+            status: document.getElementById('status')
+        };
+
+        // 初始化游戏
+        function initGame() {
+            elements.startBtn.addEventListener('click', startGame);
+            elements.pauseBtn.addEventListener('click', pauseGame);
+            elements.replayBtn.addEventListener('click', replayCurrentIdioms);
+            updateScore();
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (gameState.isPlaying) return;
+            
+            gameState.isPlaying = true;
+            gameState.score = 0;
+            updateScore();
+            elements.status.textContent = "游戏进行中...";
+            
+            // 清除所有下落中的成语
+            gameState.activeIdioms.forEach(idiom => {
+                elements.gameArea.removeChild(idiom.element);
+            });
+            gameState.activeIdioms = [];
+            
+            // 开始游戏循环
+            gameLoop();
+        }
+
+        // 暂停游戏
+        function pauseGame() {
+            gameState.isPlaying = !gameState.isPlaying;
+            if (gameState.isPlaying) {
+                elements.status.textContent = "游戏进行中...";
+                gameLoop();
+            } else {
+                elements.status.textContent = "游戏已暂停";
+            }
+        }
+
+        // 重读当前成语
+        function replayCurrentIdioms() {
+            if (gameState.activeIdioms.length === 0) return;
+            
+            gameState.currentReadingIndex = -1;
+            readNextIdiom();
+        }
+
+        // 朗读下一个成语
+        function readNextIdiom() {
+            if (!gameState.isPlaying || gameState.isReading) return;
+            
+            gameState.currentReadingIndex++;
+            if (gameState.currentReadingIndex >= gameState.activeIdioms.length) {
+                gameState.currentReadingIndex = 0;
+            }
+            
+            const currentIdiom = gameState.activeIdioms[gameState.currentReadingIndex];
+            if (currentIdiom) {
+                gameState.isReading = true;
+                speakIdiom(currentIdiom.data.text, () => {
+                    gameState.isReading = false;
+                    setTimeout(readNextIdiom, 3000);
+                });
+            }
+        }
+
+        // 游戏主循环
+        function gameLoop() {
+            if (!gameState.isPlaying) return;
+            
+            const now = Date.now();
+            
+            if (gameState.activeIdioms.length < gameState.maxActiveIdioms && 
+                now - gameState.lastSpawnTime > gameState.spawnInterval) {
+                spawnIdiom();
+                gameState.lastSpawnTime = now;
+                
+                if (gameState.activeIdioms.length === 1 && !gameState.isReading) {
+                    readNextIdiom();
+                }
+            }
+            
+            updateFallingIdioms();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 生成新成语
+        function spawnIdiom() {
+            let idiomData;
+            if (gameState.unlearnedIdioms.length > 0 && Math.random() > 0.5) {
+                const randomIndex = Math.floor(Math.random() * gameState.unlearnedIdioms.length);
+                idiomData = gameState.unlearnedIdioms[randomIndex];
+                gameState.unlearnedIdioms.splice(randomIndex, 1);
+                
+                const unlearnedElements = document.querySelectorAll('.unlearned-idiom');
+                for (let i = 0; i < unlearnedElements.length; i++) {
+                    if (unlearnedElements[i].textContent === idiomData.text) {
+                        elements.unlearnedArea.removeChild(unlearnedElements[i]);
+                        break;
+                    }
+                }
+            } else {
+                const randomIndex = Math.floor(Math.random() * idioms.length);
+                idiomData = idioms[randomIndex];
+            }
+            
+            const idiomElement = document.createElement('div');
+            idiomElement.className = 'idiom';
+            idiomElement.textContent = idiomData.text;
+            
+            const colorIndex = Math.floor(Math.random() * gameState.colors.length);
+            idiomElement.style.color = gameState.colors[colorIndex];
+            
+            const fontSize = 20 + Math.floor(Math.random() * 15);
+            idiomElement.style.fontSize = `${fontSize}px`;
+            
+            const maxWidth = elements.gameArea.clientWidth - 100;
+            const leftPos = 50 + Math.floor(Math.random() * maxWidth);
+            idiomElement.style.left = `${leftPos}px`;
+            idiomElement.style.top = '0px';
+            
+            elements.gameArea.appendChild(idiomElement);
+            idiomElement.addEventListener('click', (e) => handleIdiomClick(e, idiomData));
+            
+            gameState.activeIdioms.push({
+                element: idiomElement,
+                data: idiomData,
+                yPos: 0,
+                speed: 0.3 + Math.random() * gameState.speed
+            });
+        }
+
+        // 更新下落中的成语位置
+        function updateFallingIdioms() {
+            const gameAreaHeight = elements.gameArea.clientHeight;
+            
+            for (let i = gameState.activeIdioms.length - 1; i >= 0; i--) {
+                const idiom = gameState.activeIdioms[i];
+                idiom.yPos += idiom.speed;
+                idiom.element.style.top = `${idiom.yPos}px`;
+                
+                if (idiom.yPos > gameAreaHeight) {
+                    moveToUnlearned(idiom.element, idiom.data);
+                    elements.gameArea.removeChild(idiom.element);
+                    gameState.activeIdioms.splice(i, 1);
+                    
+                    if (gameState.activeIdioms.length > 0 && !gameState.isReading) {
+                        readNextIdiom();
+                    }
+                }
+            }
+        }
+
+        // 处理成语点击
+        function handleIdiomClick(event, idiomData) {
+            event.stopPropagation();
+            const idiomElement = event.currentTarget;
+            
+            const currentReadingIdiom = gameState.activeIdioms[gameState.currentReadingIndex];
+            if (currentReadingIdiom && currentReadingIdiom.data.text === idiomData.text) {
+                // 保存原始位置
+                const originalRect = idiomElement.getBoundingClientRect();
+                
+                showPinyin(idiomData);
+                gameState.score += 10;
+                updateScore();
+                showFeedback('+10', idiomElement);
+                
+                // 设置固定位置并放大
+                idiomElement.style.position = 'fixed';
+                idiomElement.style.top = `${originalRect.top}px`;
+                idiomElement.style.left = `${originalRect.left}px`;
+                idiomElement.classList.add('highlight');
+                
+                const index = gameState.activeIdioms.findIndex(item => item.element === idiomElement);
+                if (index !== -1) {
+                    gameState.activeIdioms.splice(index, 1);
+                    if (gameState.currentReadingIndex >= index) {
+                        gameState.currentReadingIndex--;
+                    }
+                }
+                
+                setTimeout(() => {
+                    if (idiomElement.parentNode) {
+                        elements.gameArea.removeChild(idiomElement);
+                    }
+                }, 3000);
+            } else {
+                showFeedback('不对哦', idiomElement);
+            }
+        }
+
+        // 显示拼音
+        function showPinyin(idiomData) {
+            elements.pinyinDisplay.textContent = idiomData.pinyin;
+            elements.meaningDisplay.textContent = idiomData.meaning;
+            elements.pinyinDisplay.style.opacity = '1';
+            elements.meaningDisplay.style.opacity = '1';
+            
+            if (gameState.pinyinTimeout) {
+                clearTimeout(gameState.pinyinTimeout);
+            }
+            
+            gameState.pinyinTimeout = setTimeout(() => {
+                elements.pinyinDisplay.style.opacity = '0';
+                elements.meaningDisplay.style.opacity = '0';
+            }, 3000);
+        }
+
+        // 朗读成语
+        function speakIdiom(text, callback) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.onend = callback;
+                speechSynthesis.speak(utterance);
+            } else {
+                setTimeout(callback, 1000);
+            }
+        }
+
+        // 移动到未学区域
+        function moveToUnlearned(idiomElement, idiomData) {
+            if (gameState.unlearnedIdioms.some(item => item.text === idiomData.text)) return;
+            
+            gameState.unlearnedIdioms.push(idiomData);
+            
+            const unlearnedElement = document.createElement('div');
+            unlearnedElement.className = 'unlearned-idiom';
+            unlearnedElement.textContent = idiomData.text;
+            
+            // 第一次点击显示详情
+            unlearnedElement.addEventListener('click', function handleClick() {
+                showPinyin(idiomData);
+                speakIdiom(idiomData.text, () => {});
+                
+                // 第二次点击重新加入游戏
+                unlearnedElement.addEventListener('click', function handleSecondClick() {
+                    if (gameState.activeIdioms.length < gameState.maxActiveIdioms) {
+                        elements.unlearnedArea.removeChild(unlearnedElement);
+                        const index = gameState.unlearnedIdioms.findIndex(item => item.text === idiomData.text);
+                        if (index !== -1) {
+                            gameState.unlearnedIdioms.splice(index, 1);
+                        }
+                        spawnIdiom();
+                    }
+                    unlearnedElement.removeEventListener('click', handleSecondClick);
+                }, { once: true });
+            }, { once: true });
+            
+            elements.unlearnedArea.appendChild(unlearnedElement);
+        }
+
+        // 显示反馈效果
+        function showFeedback(text, idiomElement) {
+            elements.feedback.textContent = text;
+            
+            const rect = idiomElement.getBoundingClientRect();
+            const gameAreaRect = elements.gameArea.getBoundingClientRect();
+            
+            elements.feedback.style.left = `${rect.left - gameAreaRect.left + rect.width / 2}px`;
+            elements.feedback.style.top = `${rect.top - gameAreaRect.top}px`;
+            elements.feedback.style.opacity = '1';
+            
+            if (gameState.feedbackTimeout) {
+                clearTimeout(gameState.feedbackTimeout);
+            }
+            
+            const startTime = performance.now();
+            const duration = 1000;
+            
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const currentTop = rect.top - gameAreaRect.top - 50 * progress;
+                const currentOpacity = 1 - progress;
+                
+                elements.feedback.style.top = `${currentTop}px`;
+                elements.feedback.style.opacity = currentOpacity;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+            
+            gameState.feedbackTimeout = setTimeout(() => {
+                elements.feedback.style.opacity = '0';
+            }, duration);
+        }
+
+        // 更新分数显示
+        function updateScore() {
+            elements.scoreBoard.textContent = `得分: ${gameState.score}`;
+        }
+
+        // 初始化游戏
+        window.onload = initGame;
+    </script>
+</body>
+</html>
