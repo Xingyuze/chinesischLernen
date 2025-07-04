@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《天问》节选辅助阅览器</title>
+    <style>
+        body {
+            font-family: "SimSun", "宋体", serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #f8f4e9;
+            color: #333;
+            line-height: 2.2;
+            font-size: 2em;
+        }
+        h1 {
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #d4a76a;
+            padding-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .poem-line {
+            margin: 25px 0;
+            text-align: center;
+        }
+        .character {
+            display: inline-block;
+            min-width: 1.2em;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            margin: 0 3px;
+        }
+        .character:hover {
+            background-color: #f0e6d2;
+        }
+        .character.pinyin::after {
+            content: attr(data-pinyin);
+            position: absolute;
+            top: -1.8em;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            font-size: 0.8em;
+            color: #8b4513;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .character.english::after {
+            content: attr(data-english);
+            position: absolute;
+            top: -3.5em;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            font-size: 0.8em;
+            color: #8b4513;
+            max-width: 300px;
+            word-wrap: break-word;
+            z-index: 10;
+        }
+        .line-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0 30px;
+        }
+        .action-btn {
+            background-color: #d4a76a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #b38b5a;
+        }
+        .translations {
+            background-color: #fff;
+            border: 2px solid #d4a76a;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 90%;
+            display: none;
+            font-size: 0.7em;
+        }
+        .translation {
+            margin: 12px 0;
+            line-height: 1.6;
+        }
+        .language {
+            font-weight: bold;
+            color: #8b4513;
+            display: inline-block;
+            min-width: 100px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #8b4513;
+            font-size: 0.7em;
+        }
+        .punctuation {
+            cursor: default;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>《天问》节选</h1>
+    
+    <div id="poem-container">
+        <!-- 诗句将通过JavaScript动态生成 -->
+    </div>
+    
+    <div class="footer">
+        <p>古诗文辅助阅览器 &copy; 2023</p>
+    </div>
+
+    <script>
+        // 诗文数据
+        const poem = [
+            "不任汩鸿，师何以尚之？",
+            "佥曰：「何忧？何不课而行之」？",
+            "鸱龟曳衔，何听焉？",
+            "顺欲成功，帝何刑焉？",
+            "永在羽山，夫何三年不施？",
+            "伯禹愎鲧，夫何以变化？",
+            "纂就前绪，遂成考功。",
+            "何续初继业，而厥谋不同？",
+            "洪泉极深，何以寘之？",
+            "地方九则，何以坟之？",
+            "应龙何画，河海何历？",
+            "鲧何所营，禹何所成？",
+            "康回冯怒，坠何故以东南倾？",
+            "九州安错，川谷何？",
+            "东流不溢，孰知其故？",
+            "东西南北，其修孰多？"
+        ];
+
+        // 汉字数据 - 拼音和英文翻译
+        const charData = {
+            "不": { pinyin: "bù", english: "not" },
+            "任": { pinyin: "rèn", english: "bear" },
+            "汩": { pinyin: "gǔ", english: "govern" },
+            "鸿": { pinyin: "hóng", english: "flood" },
+            "师": { pinyin: "shī", english: "people" },
+            "何": { pinyin: "hé", english: "how" },
+            "以": { pinyin: "yǐ", english: "with" },
+            "尚": { pinyin: "shàng", english: "esteem" },
+            "之": { pinyin: "zhī", english: "it" },
+            "佥": { pinyin: "qiān", english: "all" },
+            "曰": { pinyin: "yuē", english: "say" },
+            "忧": { pinyin: "yōu", english: "worry" },
+            "课": { pinyin: "kè", english: "try" },
+            "而": { pinyin: "ér", english: "and" },
+            "行": { pinyin: "xíng", english: "do" },
+            "鸱": { pinyin: "chī", english: "owl" },
+            "龟": { pinyin: "guī", english: "turtle" },
+            "曳": { pinyin: "yè", english: "drag" },
+            "衔": { pinyin: "xián", english: "hold" },
+            "听": { pinyin: "tīng", english: "listen" },
+            "焉": { pinyin: "yān", english: "how" },
+            "顺": { pinyin: "shùn", english: "follow" },
+            "欲": { pinyin: "yù", english: "desire" },
+            "成": { pinyin: "chéng", english: "succeed" },
+            "功": { pinyin: "gōng", english: "achievement" },
+            "帝": { pinyin: "dì", english: "emperor" },
+            "刑": { pinyin: "xíng", english: "punish" },
+            "永": { pinyin: "yǒng", english: "forever" },
+            "在": { pinyin: "zài", english: "at" },
+            "羽": { pinyin: "yǔ", english: "feather" },
+            "山": { pinyin: "shān", english: "mountain" },
+            "夫": { pinyin: "fú", english: "then" },
+            "三": { pinyin: "sān", english: "three" },
+            "年": { pinyin: "nián", english: "year" },
+            "施": { pinyin: "shī", english: "release" },
+            "伯": { pinyin: "bó", english: "earl" },
+            "禹": { pinyin: "yǔ", english: "Yu" },
+            "愎": { pinyin: "bì", english: "belly" },
+            "鲧": { pinyin: "gǔn", english: "Gun" },
+            "变": { pinyin: "biàn", english: "change" },
+            "化": { pinyin: "huà", english: "transform" },
+            "纂": { pinyin: "zuǎn", english: "continue" },
+            "就": { pinyin: "jiù", english: "accomplish" },
+            "前": { pinyin: "qián", english: "former" },
+            "绪": { pinyin: "xù", english: "task" },
+            "遂": { pinyin: "suì", english: "then" },
+            "考": { pinyin: "kǎo", english: "father" },
+            "续": { pinyin: "xù", english: "continue" },
+            "初": { pinyin: "chū", english: "beginning" },
+            "继": { pinyin: "jì", english: "succeed" },
+            "业": { pinyin: "yè", english: "work" },
+            "厥": { pinyin: "jué", english: "his" },
+            "谋": { pinyin: "móu", english: "plan" },
+            "同": { pinyin: "tóng", english: "same" },
+            "洪": { pinyin: "hóng", english: "flood" },
+            "泉": { pinyin: "quán", english: "spring" },
+            "极": { pinyin: "jí", english: "extremely" },
+            "深": { pinyin: "shēn", english: "deep" },
+            "寘": { pinyin: "tián", english: "fill" },
+            "地": { pinyin: "dì", english: "land" },
+            "方": { pinyin: "fāng", english: "square" },
+            "九": { pinyin: "jiǔ", english: "nine" },
+            "则": { pinyin: "zé", english: "division" },
+            "坟": { pinyin: "fén", english: "divide" },
+            "应": { pinyin: "yìng", english: "respond" },
+            "龙": { pinyin: "lóng", english: "dragon" },
+            "画": { pinyin: "huà", english: "draw" },
+            "河": { pinyin: "hé", english: "river" },
+            "海": { pinyin: "hǎi", english: "sea" },
+            "历": { pinyin: "lì", english: "pass" },
+            "所": { pinyin: "suǒ", english: "place" },
+            "营": { pinyin: "yíng", english: "manage" },
+            "康": { pinyin: "kāng", english: "Kang" },
+            "回": { pinyin: "huí", english: "Hui" },
+            "冯": { pinyin: "píng", english: "great" },
+            "怒": { pinyin: "nù", english: "anger" },
+            "坠": { pinyin: "zhuì", english: "fall" },
+            "故": { pinyin: "gù", english: "reason" },
+            "东": { pinyin: "dōng", english: "east" },
+            "南": { pinyin: "nán", english: "south" },
+            "倾": { pinyin: "qīng", english: "incline" },
+            "州": { pinyin: "zhōu", english: "region" },
+            "安": { pinyin: "ān", english: "how" },
+            "错": { pinyin: "cuò", english: "arrange" },
+            "川": { pinyin: "chuān", english: "river" },
+            "谷": { pinyin: "gǔ", english: "valley" },
+            "流": { pinyin: "liú", english: "flow" },
+            "溢": { pinyin: "yì", english: "overflow" },
+            "孰": { pinyin: "shú", english: "who" },
+            "知": { pinyin: "zhī", english: "know" },
+            "其": { pinyin: "qí", english: "its" },
+            "西": { pinyin: "xī", english: "west" },
+            "北": { pinyin: "běi", english: "north" },
+            "修": { pinyin: "xiū", english: "length" },
+            "多": { pinyin: "duō", english: "much" }
+        };
+
+        // 完整翻译数据（16句诗的7种语言翻译）
+        const translations = {
+            "不任汩鸿，师何以尚之？": {
+                english: "Unable to control the flood, why did the people still esteem him?",
+                german: "Unfähig, die Flut zu kontrollieren, warum schätzten ihn die Leute dennoch?",
+                french: "Incapable de contrôler l'inondation, pourquoi les gens l'estimaient-ils encore ?",
+                italian: "Incapace di controllare l'alluvione, perché la gente lo stimava ancora?",
+                spanish: "Incapaz de controlar la inundación, ¿por qué la gente todavía lo estimaba?",
+                arabic: "غير قادر على السيطرة على الفيضان، لماذا لا يزال الناس يقدرونه؟",
+                japanese: "洪水を制御できなかったのに、なぜ人々は彼を尊敬したのか？"
+            },
+            "佥曰：「何忧？何不课而行之」？": {
+                english: "All said: 'Why worry? Why not try and do it?'",
+                german: "Alle sagten: 'Warum sich sorgen? Warum es nicht versuchen und tun?'",
+                french: "Tous dirent : 'Pourquoi s'inquiéter ? Pourquoi ne pas essayer et le faire ?'",
+                italian: "Tutti dissero: 'Perché preoccuparsi? Perché non provare e farlo?'",
+                spanish: "Todos dijeron: '¿Por qué preocuparse? ¿Por qué no intentarlo y hacerlo?'",
+                arabic: "قال الجميع: 'لماذا تقلق؟ لماذا لا تحاول وتفعل ذلك؟'",
+                japanese: "皆が言った：『なぜ心配する？試してみてはどうか』"
+            },
+            "鸱龟曳衔，何听焉？": {
+                english: "The owl and turtle dragged and held, how did they listen?",
+                german: "Die Eule und die Schildkröte zogen und hielten, wie hörten sie zu?",
+                french: "Le hibou et la tortue traînèrent et tinrent, comment écoutèrent-ils ?",
+                italian: "Il gufo e la tartaruga trascinarono e tennero, come ascoltarono?",
+                spanish: "El búho y la tortuga arrastraron y sostuvieron, ¿cómo escucharon?",
+                arabic: "سحبت البومة والسلحفاة وأمسكتا، كيف استمعتا؟",
+                japanese: "フクロウとカメが引きずり、くわえていたが、どうやって聞いたのか？"
+            },
+            "顺欲成功，帝何刑焉？": {
+                english: "Following desire to succeed, why did the emperor punish?",
+                german: "Dem Wunsch zu folgen, um Erfolg zu haben, warum bestrafte der Kaiser?",
+                french: "Suivant le désir de réussir, pourquoi l'empereur a-t-il puni ?",
+                italian: "Seguendo il desiderio di successo, perché l'imperatore punì?",
+                spanish: "Siguiendo el deseo de tener éxito, ¿por qué el emperador castigó?",
+                arabic: "بعد الرغبة في النجاح، لماذا عاقب الإمبراطور؟",
+                japanese: "成功への欲望に従ったのに、なぜ皇帝は罰したのか？"
+            },
+            "永在羽山，夫何三年不施？": {
+                english: "Forever at Feather Mountain, why was he not released for three years?",
+                german: "Für immer am Federberg, warum wurde er drei Jahre lang nicht freigelassen?",
+                french: "Pour toujours au Mont des Plumes, pourquoi n'a-t-il pas été libéré pendant trois ans ?",
+                italian: "Per sempre al Monte delle Piume, perché non fu rilasciato per tre anni?",
+                spanish: "Para siempre en el Monte de las Plumas, ¿por qué no fue liberado durante tres años?",
+                arabic: "إلى الأبد في جبل الريش، لماذا لم يتم إطلاق سراحه لمدة ثلاث سنوات؟",
+                japanese: "羽山に永遠にいたのに、なぜ三年間解放されなかったのか？"
+            },
+            "伯禹愎鲧，夫何以变化？": {
+                english: "Earl Yu was born from Gun's belly, how did he transform?",
+                german: "Graf Yu wurde aus Guns Bauch geboren, wie hat er sich verwandelt?",
+                french: "Le comte Yu est né du ventre de Gun, comment s'est-il transformé ?",
+                italian: "Il conte Yu è nato dalla pancia di Gun, come si è trasformato?",
+                spanish: "El conde Yu nació del vientre de Gun, ¿cómo se transformó?",
+                arabic: "ولد الإيرل يو من بطن غون، كيف تحول؟",
+                japanese: "禹伯は鯀の腹から生まれたが、どうやって変化したのか？"
+            },
+            "纂就前绪，遂成考功。": {
+                english: "Continuing the former task, then accomplishing his father's work.",
+                german: "Die frühere Aufgabe fortsetzen, dann die Arbeit seines Vaters vollenden.",
+                french: "Poursuivant la tâche précédente, puis accomplissant le travail de son père.",
+                italian: "Continuando il compito precedente, poi portando a termine il lavoro di suo padre.",
+                spanish: "Continuando la tarea anterior, luego logrando el trabajo de su padre.",
+                arabic: "استمرار المهمة السابقة، ثم إنجاز عمل والده.",
+                japanese: "前の任務を続け、父の仕事を成し遂げた。"
+            },
+            "何续初继业，而厥谋不同？": {
+                english: "Why continue the initial succession, yet his plans differed?",
+                german: "Warum die anfängliche Nachfolge fortsetzen, doch seine Pläne unterschiedlich waren?",
+                french: "Pourquoi continuer la succession initiale, mais ses plans étaient différents ?",
+                italian: "Perché continuare la successione iniziale, ma i suoi piani erano diversi?",
+                spanish: "¿Por qué continuar la sucesión inicial, pero sus planes eran diferentes?",
+                arabic: "لماذا تستمر الخلافة الأولية، لكن خططه اختلفت؟",
+                japanese: "なぜ最初の継続を続けたのに、彼の計画は違っていたのか？"
+            },
+            "洪泉极深，何以寘之？": {
+                english: "The flood springs were extremely deep, how did he fill them?",
+                german: "Die Flutquellen waren extrem tief, wie hat er sie gefüllt?",
+                french: "Les sources de l'inondation étaient extrêmement profondes, comment les a-t-il remplies ?",
+                italian: "Le sorgenti dell'alluvione erano estremamente profonde, come le ha riempite?",
+                spanish: "Los manantiales de la inundación eran extremadamente profundos, ¿cómo los llenó?",
+                arabic: "كانت ينابيع الفيضان عميقة للغاية، كيف ملأها؟",
+                japanese: "洪水の泉は非常に深かったが、どうやって埋めたのか？"
+            },
+            "地方九则，何以坟之？": {
+                english: "The land was divided into nine regions, how did he demarcate them?",
+                german: "Das Land war in neun Regionen unterteilt, wie hat er sie abgegrenzt?",
+                french: "La terre était divisée en neuf régions, comment les a-t-il délimitées ?",
+                italian: "La terra era divisa in nove regioni, come le ha delimitate?",
+                spanish: "La tierra se dividió en nueve regiones, ¿cómo las demarcó?",
+                arabic: "تم تقسيم الأرض إلى تسع مناطق، كيف حددها؟",
+                japanese: "土地は九つの地域に分かれていたが、どうやって境界を定めたのか？"
+            },
+            "应龙何画，河海何历？": {
+                english: "How did the responding dragon draw, how did the rivers and seas pass?",
+                german: "Wie hat der antwortende Drache gezeichnet, wie sind die Flüsse und Meere passiert?",
+                french: "Comment le dragon répondant a-t-il dessiné, comment les rivières et les mers ont-elles passé ?",
+                italian: "Come ha disegnato il drago rispondente, come sono passati i fiumi e i mari?",
+                spanish: "¿Cómo dibujó el dragón que respondió, cómo pasaron los ríos y los mares?",
+                arabic: "كيف رسم التنين المستجيب، كيف مرت الأنهار والبحار؟",
+                japanese: "応龍はどうやって描き、河や海はどうやって通ったのか？"
+            },
+            "鲧何所营，禹何所成？": {
+                english: "What did Gun manage, what did Yu accomplish?",
+                german: "Was hat Gun verwaltet, was hat Yu erreicht?",
+                french: "Qu'est-ce que Gun a géré, qu'est-ce que Yu a accompli ?",
+                italian: "Cosa ha gestito Gun, cosa ha realizzato Yu?",
+                spanish: "¿Qué administró Gun, qué logró Yu?",
+                arabic: "ماذا أدار غون، ماذا أنجز يو؟",
+                japanese: "鯀は何を管理し、禹は何を成し遂げたのか？"
+            },
+            "康回冯怒，坠何故以东南倾？": {
+                english: "Kang Hui in great anger, why did it collapse leaning southeast?",
+                german: "Kang Hui in großem Zorn, warum ist es nach Südosten geneigt zusammengebrochen?",
+                french: "Kang Hui dans une grande colère, pourquoi s'est-il effondré en penchant vers le sud-est ?",
+                italian: "Kang Hui in grande rabbia, perché è crollato inclinandosi a sud-est?",
+                spanish: "Kang Hui en gran ira, ¿por qué se derrumbó inclinándose hacia el sureste?",
+                arabic: "كانغ هوي في غضب شديد، لماذا انهار مائلاً إلى الجنوب الشرقي؟",
+                japanese: "康回は激怒し、なぜ南東に傾いて崩れたのか？"
+            },
+            "九州安错，川谷何？": {
+                english: "How were the nine regions arranged, how about the rivers and valleys?",
+                german: "Wie waren die neun Regionen angeordnet, wie war es mit den Flüssen und Tälern?",
+                french: "Comment les neuf régions étaient-elles disposées, et les rivières et les vallées ?",
+                italian: "Come erano disposte le nove regioni, e i fiumi e le valli?",
+                spanish: "¿Cómo se organizaron las nueve regiones, y los ríos y valles?",
+                arabic: "كيف تم ترتيب المناطق التسع، وماذا عن الأنهار والوديان؟",
+                japanese: "九州はどのように配置され、川や谷はどうだったのか？"
+            },
+            "东流不溢，孰知其故？": {
+                english: "Flowing east without overflowing, who knows the reason?",
+                german: "Nach Osten fließend ohne überzulaufen, wer kennt den Grund?",
+                french: "Coulant vers l'est sans déborder, qui en connaît la raison ?",
+                italian: "Scorrendo a est senza straripare, chi ne conosce il motivo?",
+                spanish: "Fluyendo hacia el este sin desbordarse, ¿quién conoce la razón?",
+                arabic: "تتدفق شرقا دون أن تفيض، من يعرف السبب؟",
+                japanese: "東に流れて溢れないのは、誰がその理由を知っているのか？"
+            },
+            "东西南北，其修孰多？": {
+                english: "East, west, south and north, which is longer?",
+                german: "Osten, Westen, Süden und Norden, welches ist länger?",
+                french: "Est, ouest, sud et nord, lequel est le plus long ?",
+                italian: "Est, ovest, sud e nord, qual è più lungo?",
+                spanish: "Este, oeste, sur y norte, ¿cuál es más largo?",
+                arabic: "الشرق والغرب والجنوب والشمال، أيهما أطول؟",
+                japanese: "東西南北、どちらがより長いのか？"
+            }
+        };
+
+        // 生成诗文
+        const poemContainer = document.getElementById('poem-container');
+        
+        poem.forEach(line => {
+            // 创建诗句容器
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'poem-line';
+            
+            // 为每个字符创建可点击元素
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                // 跳过标点符号
+                if (['，', '。', '？', '：', '」', '「', '『', '』'].includes(char)) {
+                    const punctSpan = document.createElement('span');
+                    punctSpan.className = 'punctuation';
+                    punctSpan.textContent = char;
+                    lineDiv.appendChild(punctSpan);
+                    continue;
+                }
+                
+                const charSpan = document.createElement('span');
+                charSpan.className = 'character';
+                charSpan.textContent = char;
+                
+                // 设置字符数据
+                if (charData[char]) {
+                    charSpan.dataset.pinyin = charData[char].pinyin;
+                    charSpan.dataset.english = charData[char].english;
+                } else {
+                    // 默认数据（如果没有特定数据）
+                    charSpan.dataset.pinyin = '?';
+                    charSpan.dataset.english = 'no translation';
+                }
+                
+                // 点击事件
+                let clickCount = 0;
+                charSpan.addEventListener('click', function() {
+                    clickCount = (clickCount + 1) % 3; // 循环0-2
+                    
+                    // 移除所有状态类
+                    this.classList.remove('pinyin', 'english');
+                    
+                    // 根据点击次数添加相应类
+                    if (clickCount === 1) {
+                        this.classList.add('pinyin');
+                    } else if (clickCount === 2) {
+                        this.classList.add('english');
+                    }
+                    // clickCount为0时不显示任何提示
+                });
+                
+                lineDiv.appendChild(charSpan);
+            }
+            
+            // 创建操作按钮容器
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'line-actions';
+            
+            // 朗读按钮
+            const readBtn = document.createElement('button');
+            readBtn.className = 'action-btn';
+            readBtn.textContent = '朗读';
+            readBtn.addEventListener('click', function() {
+                // 使用Web Speech API朗读
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(line);
+                    utterance.lang = 'zh-CN';
+                    speechSynthesis.speak(utterance);
+                } else {
+                    alert('您的浏览器不支持语音合成功能');
+                }
+            });
+            
+            // 翻译按钮
+            const translateBtn = document.createElement('button');
+            translateBtn.className = 'action-btn';
+            translateBtn.textContent = '翻译';
+            translateBtn.addEventListener('click', function() {
+                // 查找或创建翻译容器
+                let translationsDiv = lineDiv.nextElementSibling;
+                if (!translationsDiv || !translationsDiv.classList.contains('translations')) {
+                    translationsDiv = document.createElement('div');
+                    translationsDiv.className = 'translations';
+                    lineDiv.parentNode.insertBefore(translationsDiv, lineDiv.nextSibling);
+                }
+                
+                // 切换显示/隐藏
+                if (translationsDiv.style.display === 'block') {
+                    translationsDiv.style.display = 'none';
+                    translateBtn.textContent = '翻译';
+                } else {
+                    // 填充翻译内容
+                    const lineTranslations = translations[line];
+                    
+                    translationsDiv.innerHTML = `
+                        <div class="translation"><span class="language">English:</span> ${lineTranslations.english}</div>
+                        <div class="translation"><span class="language">Deutsch:</span> ${lineTranslations.german}</div>
+                        <div class="translation"><span class="language">Français:</span> ${lineTranslations.french}</div>
+                        <div class="translation"><span class="language">Italiano:</span> ${lineTranslations.italian}</div>
+                        <div class="translation"><span class="language">Español:</span> ${lineTranslations.spanish}</div>
+                        <div class="translation"><span class="language">العربية:</span> ${lineTranslations.arabic}</div>
+                        <div class="translation"><span class="language">日本語:</span> ${lineTranslations.japanese}</div>
+                    `;
+                    
+                    translationsDiv.style.display = 'block';
+                    translateBtn.textContent = '隐藏翻译';
+                }
+            });
+            
+            actionsDiv.appendChild(readBtn);
+            actionsDiv.appendChild(translateBtn);
+            
+            // 添加到容器
+            poemContainer.appendChild(lineDiv);
+            poemContainer.appendChild(actionsDiv);
+        });
+    </script>
+</body>
+</html>

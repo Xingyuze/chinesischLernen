@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《天问》第一段</title>
+    <style>
+        body {
+            font-family: "SimSun", "宋体", serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #f8f4e9;
+            color: #333;
+            line-height: 2.2;
+            font-size: 2em;
+        }
+        h1 {
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #d4a76a;
+            padding-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .poem-line {
+            margin: 25px 0;
+            text-align: center;
+        }
+        .character {
+            display: inline-block;
+            min-width: 1.2em;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            margin: 0 3px;
+        }
+        .character:hover {
+            background-color: #f0e6d2;
+        }
+        .character.pinyin::after {
+            content: attr(data-pinyin);
+            position: absolute;
+            top: -1.8em;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            font-size: 0.8em;
+            color: #8b4513;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .character.english::after {
+            content: attr(data-english);
+            position: absolute;
+            top: -3.5em;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            font-size: 0.8em;
+            color: #8b4513;
+            max-width: 300px;
+            word-wrap: break-word;
+            z-index: 10;
+        }
+        .line-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0 30px;
+        }
+        .action-btn {
+            background-color: #d4a76a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #b38b5a;
+        }
+        .translations {
+            background-color: #fff;
+            border: 2px solid #d4a76a;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 90%;
+            display: none;
+            font-size: 0.7em;
+        }
+        .translation {
+            margin: 12px 0;
+            line-height: 1.6;
+        }
+        .language {
+            font-weight: bold;
+            color: #8b4513;
+            display: inline-block;
+            min-width: 100px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #8b4513;
+            font-size: 0.7em;
+        }
+        .punctuation {
+            cursor: default;
+            margin: 0 5px;
+        }
+        .title {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 30px;
+            color: #8b4513;
+        }
+        .author {
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">天问</div>
+    <div class="author">屈原</div>
+    
+    <div id="poem-container">
+        <!-- 诗句将通过JavaScript动态生成 -->
+    </div>
+    
+    <div class="footer">
+        <p>古诗文辅助阅览器 &copy; 2023</p>
+    </div>
+
+    <script>
+        // 诗文数据
+        const poem = [
+            "曰：",
+            "遂古之初，谁传道之？", 
+            "上下未形，何由考之？",
+            "冥昭瞢闇，谁能极之？",
+            "冯翼惟像，何以识之？",
+            "明明闇闇，惟时何为？",
+            "阴阳三合，何本何化？",
+            "圜则九重，孰营度之？",
+            "惟兹何功，孰初作之？",
+            "斡维焉系，天极焉加？",
+            "八柱何当，东南何亏？",
+            "九天之际，安放安属？",
+            "隅隈多有，谁知其数？",
+            "天何所沓，十二焉分？",
+            "日月安属，列星安陈？",
+            "出自汤谷，次于蒙汜。",
+            "自明及晦，所行几里？",
+            "夜光何德，死则又育？",
+            "厥利维何，而顾菟在腹？",
+            "女岐无合，夫焉取九子？",
+            "伯强何处？惠气安在？",
+            "何阖而晦，何开而明？",
+            "角宿未旦，曜灵安藏？"
+        ];
+
+        // 汉字数据 - 拼音和英文翻译
+        const charData = {
+            "曰": { pinyin: "yuē", english: "say" },
+            "遂": { pinyin: "suì", english: "remote" },
+            "古": { pinyin: "gǔ", english: "ancient" },
+            "之": { pinyin: "zhī", english: "of" },
+            "初": { pinyin: "chū", english: "beginning" },
+            "谁": { pinyin: "shuí", english: "who" },
+            "传": { pinyin: "chuán", english: "transmit" },
+            "道": { pinyin: "dào", english: "way" },
+            "上": { pinyin: "shàng", english: "above" },
+            "下": { pinyin: "xià", english: "below" },
+            "未": { pinyin: "wèi", english: "not yet" },
+            "形": { pinyin: "xíng", english: "form" },
+            "何": { pinyin: "hé", english: "how" },
+            "由": { pinyin: "yóu", english: "from" },
+            "考": { pinyin: "kǎo", english: "examine" },
+            "冥": { pinyin: "míng", english: "dark" },
+            "昭": { pinyin: "zhāo", english: "bright" },
+            "瞢": { pinyin: "méng", english: "dim" },
+            "闇": { pinyin: "àn", english: "dark" },
+            "能": { pinyin: "néng", english: "can" },
+            "极": { pinyin: "jí", english: "extreme" },
+            "冯": { pinyin: "píng", english: "full" },
+            "翼": { pinyin: "yì", english: "wings" },
+            "惟": { pinyin: "wéi", english: "only" },
+            "像": { pinyin: "xiàng", english: "image" },
+            "以": { pinyin: "yǐ", english: "with" },
+            "识": { pinyin: "shí", english: "know" },
+            "明": { pinyin: "míng", english: "bright" },
+            "时": { pinyin: "shí", english: "time" },
+            "为": { pinyin: "wéi", english: "do" },
+            "阴": { pinyin: "yīn", english: "yin" },
+            "阳": { pinyin: "yáng", english: "yang" },
+            "三": { pinyin: "sān", english: "three" },
+            "合": { pinyin: "hé", english: "combine" },
+            "本": { pinyin: "běn", english: "origin" },
+            "化": { pinyin: "huà", english: "transform" },
+            "圜": { pinyin: "huán", english: "circle" },
+            "则": { pinyin: "zé", english: "then" },
+            "九": { pinyin: "jiǔ", english: "nine" },
+            "重": { pinyin: "chóng", english: "layers" },
+            "孰": { pinyin: "shú", english: "who" },
+            "营": { pinyin: "yíng", english: "manage" },
+            "度": { pinyin: "dù", english: "measure" },
+            "兹": { pinyin: "zī", english: "this" },
+            "功": { pinyin: "gōng", english: "achievement" },
+            "初": { pinyin: "chū", english: "beginning" },
+            "作": { pinyin: "zuò", english: "make" },
+            "斡": { pinyin: "guǎn", english: "pivot" },
+            "维": { pinyin: "wéi", english: "cord" },
+            "焉": { pinyin: "yān", english: "how" },
+            "系": { pinyin: "xì", english: "tie" },
+            "天": { pinyin: "tiān", english: "heaven" },
+            "极": { pinyin: "jí", english: "pole" },
+            "加": { pinyin: "jiā", english: "add" },
+            "八": { pinyin: "bā", english: "eight" },
+            "柱": { pinyin: "zhù", english: "pillar" },
+            "当": { pinyin: "dāng", english: "support" },
+            "东": { pinyin: "dōng", english: "east" },
+            "南": { pinyin: "nán", english: "south" },
+            "亏": { pinyin: "kuī", english: "deficient" },
+            "际": { pinyin: "jì", english: "border" },
+            "安": { pinyin: "ān", english: "where" },
+            "放": { pinyin: "fàng", english: "place" },
+            "属": { pinyin: "shǔ", english: "belong" },
+            "隅": { pinyin: "yú", english: "corner" },
+            "隈": { pinyin: "wēi", english: "bend" },
+            "多": { pinyin: "duō", english: "many" },
+            "有": { pinyin: "yǒu", english: "have" },
+            "知": { pinyin: "zhī", english: "know" },
+            "其": { pinyin: "qí", english: "its" },
+            "数": { pinyin: "shù", english: "number" },
+            "所": { pinyin: "suǒ", english: "place" },
+            "沓": { pinyin: "tà", english: "overlap" },
+            "十": { pinyin: "shí", english: "ten" },
+            "二": { pinyin: "èr", english: "two" },
+            "分": { pinyin: "fēn", english: "divide" },
+            "日": { pinyin: "rì", english: "sun" },
+            "月": { pinyin: "yuè", english: "moon" },
+            "列": { pinyin: "liè", english: "array" },
+            "星": { pinyin: "xīng", english: "star" },
+            "陈": { pinyin: "chén", english: "arrange" },
+            "出": { pinyin: "chū", english: "come out" },
+            "自": { pinyin: "zì", english: "from" },
+            "汤": { pinyin: "yáng", english: "sunny" },
+            "谷": { pinyin: "gǔ", english: "valley" },
+            "次": { pinyin: "cì", english: "rest" },
+            "于": { pinyin: "yú", english: "at" },
+            "蒙": { pinyin: "méng", english: "dark" },
+            "汜": { pinyin: "sì", english: "river" },
+            "及": { pinyin: "jí", english: "to" },
+            "晦": { pinyin: "huì", english: "dark" },
+            "行": { pinyin: "xíng", english: "travel" },
+            "几": { pinyin: "jǐ", english: "how many" },
+            "里": { pinyin: "lǐ", english: "mile" },
+            "夜": { pinyin: "yè", english: "night" },
+            "光": { pinyin: "guāng", english: "light" },
+            "德": { pinyin: "dé", english: "virtue" },
+            "死": { pinyin: "sǐ", english: "die" },
+            "则": { pinyin: "zé", english: "then" },
+            "又": { pinyin: "yòu", english: "again" },
+            "育": { pinyin: "yù", english: "grow" },
+            "厥": { pinyin: "jué", english: "its" },
+            "利": { pinyin: "lì", english: "benefit" },
+            "维": { pinyin: "wéi", english: "only" },
+            "而": { pinyin: "ér", english: "and" },
+            "顾": { pinyin: "gù", english: "look" },
+            "菟": { pinyin: "tù", english: "hare" },
+            "在": { pinyin: "zài", english: "in" },
+            "腹": { pinyin: "fù", english: "belly" },
+            "女": { pinyin: "nǚ", english: "female" },
+            "岐": { pinyin: "qí", english: "forked" },
+            "无": { pinyin: "wú", english: "without" },
+            "合": { pinyin: "hé", english: "mate" },
+            "夫": { pinyin: "fū", english: "man" },
+            "取": { pinyin: "qǔ", english: "get" },
+            "子": { pinyin: "zǐ", english: "child" },
+            "伯": { pinyin: "bó", english: "earl" },
+            "强": { pinyin: "qiáng", english: "strong" },
+            "处": { pinyin: "chù", english: "place" },
+            "惠": { pinyin: "huì", english: "kind" },
+            "气": { pinyin: "qì", english: "energy" },
+            "阖": { pinyin: "hé", english: "close" },
+            "开": { pinyin: "kāi", english: "open" },
+            "角": { pinyin: "jiǎo", english: "horn" },
+            "宿": { pinyin: "xiù", english: "lodge" },
+            "旦": { pinyin: "dàn", english: "dawn" },
+            "曜": { pinyin: "yào", english: "shine" },
+            "灵": { pinyin: "líng", english: "spirit" },
+            "藏": { pinyin: "cáng", english: "hide" }
+        };
+
+        // 完整翻译数据（23句诗的7种语言翻译）
+        const translations = {
+            "曰：": {
+                english: "It is said:",
+                german: "Es wird gesagt:",
+                french: "Il est dit :",
+                italian: "Si dice:",
+                spanish: "Se dice:",
+                arabic: "يقال:",
+                japanese: "曰く："
+            },
+            "遂古之初，谁传道之？": {
+                english: "In the beginning of remote antiquity, who transmitted the way?",
+                german: "Am Anfang der fernen Antike, wer übermittelte den Weg?",
+                french: "Au début de l'antiquité lointaine, qui a transmis la voie ?",
+                italian: "All'inizio dell'antichità remota, chi ha trasmesso la via?",
+                spanish: "Al principio de la antigüedad remota, ¿quién transmitió el camino?",
+                arabic: "في بداية العصور القديمة البعيدة، من نقل الطريق؟",
+                japanese: "遂古の初め、誰か道を伝えし？"
+            },
+            "上下未形，何由考之？": {
+                english: "When above and below had no form, how could it be examined?",
+                german: "Als oben und unten keine Form hatten, wie konnte es untersucht werden?",
+                french: "Quand le haut et le bas n'avaient pas de forme, comment pouvait-on l'examiner ?",
+                italian: "Quando sopra e sotto non avevano forma, come poteva essere esaminato?",
+                spanish: "Cuando arriba y abajo no tenían forma, ¿cómo se podía examinar?",
+                arabic: "عندما لم يكن للفوق والتحت شكل، كيف يمكن فحصه؟",
+                japanese: "上下形未だ成らず、何ぞ由って之を考うる？"
+            },
+            "冥昭瞢闇，谁能极之？": {
+                english: "The dim and bright, obscure and dark, who could fathom it?",
+                german: "Das Düstere und Helle, Unklare und Dunkle, wer konnte es ergründen?",
+                french: "Le sombre et le lumineux, l'obscur et le noir, qui pouvait le comprendre ?",
+                italian: "L'oscuro e il luminoso, l'incerto e il buio, chi poteva comprenderlo?",
+                spanish: "Lo tenue y lo brillante, lo oscuro y lo negro, ¿quién podía comprenderlo?",
+                arabic: "الخافت والمشرق، الغامض والمظلم، من يستطيع فهمه؟",
+                japanese: "冥昭瞢闇、誰か能く之を極むる？"
+            },
+            "冯翼惟像，何以识之？": {
+                english: "Full of images without form, how could one recognize it?",
+                german: "Voller formloser Bilder, wie konnte man es erkennen?",
+                french: "Plein d'images sans forme, comment pouvait-on le reconnaître ?",
+                italian: "Pieno di immagini senza forma, come si poteva riconoscerlo?",
+                spanish: "Lleno de imágenes sin forma, ¿cómo se podía reconocer?",
+                arabic: "مليء بالصور دون شكل، كيف يمكن التعرف عليه؟",
+                japanese: "馮翼惟像、何を以て之を識る？"
+            },
+            "明明闇闇，惟时何为？": {
+                english: "Brightness and darkness, what was time doing then?",
+                german: "Helligkeit und Dunkelheit, was tat die Zeit damals?",
+                french: "Lumière et obscurité, que faisait le temps alors ?",
+                italian: "Luce e oscurità, cosa faceva il tempo allora?",
+                spanish: "Luz y oscuridad, ¿qué hacía el tiempo entonces?",
+                arabic: "السطوع والظلام، ماذا كان يفعل الوقت إذ ذاك؟",
+                japanese: "明々闇々、惟時何を為す？"
+            },
+            "阴阳三合，何本何化？": {
+                english: "Yin and yang combining threefold, what was their origin and transformation?",
+                german: "Yin und Yang dreifach kombinierend, was war ihr Ursprung und ihre Verwandlung?",
+                french: "Yin et yang se combinant en triple, quelle était leur origine et transformation ?",
+                italian: "Yin e yang combinati in triplice, qual era la loro origine e trasformazione?",
+                spanish: "Yin y yang combinándose en triple, ¿cuál fue su origen y transformación?",
+                arabic: "ين ويانغ يتحدان ثلاثيًا، ما كان أصلهما وتحولهما؟",
+                japanese: "陰陽三合、何本何化？"
+            },
+            "圜则九重，孰营度之？": {
+                english: "The circle has nine layers, who measured and planned it?",
+                german: "Der Kreis hat neun Schichten, wer hat es gemessen und geplant?",
+                french: "Le cercle a neuf couches, qui l'a mesuré et planifié ?",
+                italian: "Il cerchio ha nove strati, chi lo ha misurato e progettato?",
+                spanish: "El círculo tiene nueve capas, ¿quién lo midió y planeó?",
+                arabic: "الدائرة لها تسع طبقات، من قاسها وخططها؟",
+                japanese: "圜は則ち九重、孰か営度す？"
+            },
+            "惟兹何功，孰初作之？": {
+                english: "What achievement is this, who first made it?",
+                german: "Welche Leistung ist dies, wer hat es zuerst gemacht?",
+                french: "Quelle réalisation est-ce, qui l'a fait en premier ?",
+                italian: "Quale risultato è questo, chi lo ha fatto per primo?",
+                spanish: "¿Qué logro es este, quién lo hizo primero?",
+                arabic: "ما هذا الإنجاز، من صنعه أولاً؟",
+                japanese: "惟茲何の功、孰か初めに之を作る？"
+            },
+            "斡维焉系，天极焉加？": {
+                english: "Where is the axis tied, where is the celestial pole added?",
+                german: "Wo ist die Achse gebunden, wo ist der Himmelspol hinzugefügt?",
+                french: "Où est attaché l'axe, où est ajouté le pôle céleste ?",
+                italian: "Dov'è legato l'asse, dov'è aggiunto il polo celeste?",
+                spanish: "¿Dónde está atado el eje, dónde se añade el polo celeste?",
+                arabic: "أين تربط المحور، أين يضاف القطب السماوي؟",
+                japanese: "斡維焉くにか繋ぎ、天極焉くにか加う？"
+            },
+            "八柱何当，东南何亏？": {
+                english: "Where do the eight pillars support, why is the southeast deficient?",
+                german: "Wo stützen die acht Säulen, warum ist der Südosten mangelhaft?",
+                french: "Où les huit piliers soutiennent-ils, pourquoi le sud-est est-il déficient ?",
+                italian: "Dove sostengono gli otto pilastri, perché il sud-est è carente?",
+                spanish: "¿Dónde sostienen los ocho pilares, por qué el sureste es deficiente?",
+                arabic: "أين تدعم الأعمدة الثمانية، لماذا الجنوب الشرقي ناقص؟",
+                japanese: "八柱何にか当たり、東南何ぞ虧く？"
+            },
+            "九天之际，安放安属？": {
+                english: "At the borders of the nine heavens, where are they placed and connected?",
+                german: "An den Grenzen der neun Himmel, wo sind sie platziert und verbunden?",
+                french: "Aux frontières des neuf cieux, où sont-ils placés et connectés ?",
+                italian: "Ai confini dei nove cieli, dove sono collocati e collegati?",
+                spanish: "En los límites de los nueve cielos, ¿dónde están colocados y conectados?",
+                arabic: "على حدود السماوات التسع، أين توضع وتتصل؟",
+                japanese: "九天の際、安んぞ放ち安んぞ属す？"
+            },
+            "隅隈多有，谁知其数？": {
+                english: "Corners and bends are many, who knows their number?",
+                german: "Ecken und Biegungen sind viele, wer kennt ihre Zahl?",
+                french: "Les coins et les courbes sont nombreux, qui connaît leur nombre ?",
+                italian: "Angoli e curve sono molti, chi conosce il loro numero?",
+                spanish: "Esquinas y curvas son muchas, ¿quién conoce su número?",
+                arabic: "الزوايا والانحناءات كثيرة، من يعرف عددها؟",
+                japanese: "隅隈多く有り、誰か其の数を知る？"
+            },
+            "天何所沓，十二焉分？": {
+                english: "Where does heaven overlap, how are the twelve divided?",
+                german: "Wo überlappt sich der Himmel, wie sind die zwölf geteilt?",
+                french: "Où le ciel se chevauche-t-il, comment les douze sont-ils divisés ?",
+                italian: "Dove si sovrappone il cielo, come sono divisi i dodici?",
+                spanish: "¿Dónde se superpone el cielo, cómo se dividen los doce?",
+                arabic: "أين يتداخل السماء، كيف تنقسم الاثنا عشر؟",
+                japanese: "天何くにか沓み、十二焉くにか分かれる？"
+            },
+            "日月安属，列星安陈？": {
+                english: "Where do the sun and moon belong, how are the stars arrayed?",
+                german: "Wohin gehören Sonne und Mond, wie sind die Sterne angeordnet?",
+                french: "Où appartiennent le soleil et la lune, comment les étoiles sont-elles disposées ?",
+                italian: "Dove appartengono il sole e la luna, come sono disposte le stelle?",
+                spanish: "¿Dónde pertenecen el sol y la luna, cómo están dispuestas las estrellas?",
+                arabic: "أين ينتمي الشمس والقمر، كيف يتم ترتيب النجوم؟",
+                japanese: "日月安んぞ属し、列星安んぞ陳ぶ？"
+            },
+            "出自汤谷，次于蒙汜。": {
+                english: "Coming forth from Sunny Valley, resting at Dark River.",
+                german: "Hervorkommend aus dem Sonnental, ruhend am Dunklen Fluss.",
+                french: "Sortant de la Vallée Ensoleillée, se reposant à la Rivière Sombre.",
+                italian: "Uscendo dalla Valle Soleggiata, riposando al Fiume Oscuro.",
+                spanish: "Saliendo del Valle Soleado, descansando en el Río Oscuro.",
+                arabic: "خروجًا من وادي الشمسي، مستريحًا عند النهر المظلم.",
+                japanese: "湯谷より出で、蒙汜に次ぐ。"
+            },
+            "自明及晦，所行几里？": {
+                english: "From dawn to dusk, how many miles does it travel?",
+                german: "Von der Dämmerung bis zum Abend, wie viele Meilen reist es?",
+                french: "De l'aube au crépuscule, combien de kilomètres parcourt-il ?",
+                italian: "Dall'alba al tramonto, quanti chilometri percorre?",
+                spanish: "Desde el amanecer hasta el anochecer, ¿cuántas millas viaja?",
+                arabic: "من الفجر حتى الغسق، كم ميل يسافر؟",
+                japanese: "明より晦に及び、行く所幾里？"
+            },
+            "夜光何德，死则又育？": {
+                english: "What virtue does the moon have, that dying it is reborn?",
+                german: "Welche Tugend hat der Mond, dass sterbend er wiedergeboren wird?",
+                french: "Quelle vertu la lune a-t-elle, qu'en mourant elle renaît ?",
+                italian: "Quale virtù ha la luna, che morendo rinasce?",
+                spanish: "¿Qué virtud tiene la luna, que muriendo renace?",
+                arabic: "ما هي فضيلة القمر، التي عند موتها تولد من جديد؟",
+                japanese: "夜光何の徳、死すれば則ち又育つ？"
+            },
+            "厥利维何，而顾菟在腹？": {
+                english: "What benefit is this, that a hare is in its belly?",
+                german: "Welcher Nutzen ist dies, dass ein Hase in seinem Bauch ist?",
+                french: "Quel avantage est-ce, qu'un lièvre soit dans son ventre ?",
+                italian: "Quale beneficio è questo, che una lepre è nella sua pancia?",
+                spanish: "¿Qué beneficio es este, que una liebre está en su vientre?",
+                arabic: "ما هذه الفائدة، أن أرنب في بطنه؟",
+                japanese: "厥の利維何ぞ、而して顧菟腹に在る？"
+            },
+            "女岐无合，夫焉取九子？": {
+                english: "Nuqi had no mate, how then did she get nine children?",
+                german: "Nuqi hatte keinen Partner, wie bekam sie dann neun Kinder?",
+                french: "Nuqi n'avait pas de compagnon, comment alors a-t-elle eu neuf enfants ?",
+                italian: "Nuqi non aveva compagno, come allora ha avuto nove figli?",
+                spanish: "Nuqi no tenía pareja, ¿cómo entonces tuvo nueve hijos?",
+                arabic: "نوكي ليس لها زوج، كيف إذن حصلت على تسعة أطفال؟",
+                japanese: "女岐合すること無く、夫焉くにして九子を取る？"
+            },
+            "伯强何处？惠气安在？": {
+                english: "Where is Boqiang? Where is the kind energy?",
+                german: "Wo ist Boqiang? Wo ist die freundliche Energie?",
+                french: "Où est Boqiang ? Où est l'énergie bienveillante ?",
+                italian: "Dov'è Boqiang? Dov'è l'energia gentile?",
+                spanish: "¿Dónde está Boqiang? ¿Dónde está la energía amable?",
+                arabic: "أين هو بوقيانغ؟ أين الطاقة اللطيفة؟",
+                japanese: "伯強何の処？惠気安んぞ在る？"
+            },
+            "何阖而晦，何开而明？": {
+                english: "What closes to make darkness, what opens to make light?",
+                german: "Was schließt, um Dunkelheit zu machen, was öffnet, um Licht zu machen?",
+                french: "Qu'est-ce qui se ferme pour faire l'obscurité, qu'est-ce qui s'ouvre pour faire la lumière ?",
+                italian: "Cosa si chiude per fare l'oscurità, cosa si apre per fare la luce?",
+                spanish: "¿Qué se cierra para hacer oscuridad, qué se abre para hacer luz?",
+                arabic: "ما الذي يغلق ليصنع الظلام، ما الذي يفتح ليصنع النور؟",
+                japanese: "何ぞ闔して晦し、何ぞ開けて明るし？"
+            },
+            "角宿未旦，曜灵安藏？": {
+                english: "Before Horn stars dawn, where does the shining spirit hide?",
+                german: "Bevor die Hornsterne dämmern, wo versteckt sich der leuchtende Geist?",
+                french: "Avant l'aube des étoiles Cornes, où se cache l'esprit brillant ?",
+                italian: "Prima dell'alba delle stelle Corno, dove si nasconde lo spirito luminoso?",
+                spanish: "Antes del amanecer de las estrellas Cuerno, ¿dónde se esconde el espíritu brillante?",
+                arabic: "قبل فجر نجوم القرن، أين يختبئ الروح المتألق؟",
+                japanese: "角宿未だ旦ならず、曜霊安んぞ蔵る？"
+            }
+        };
+
+        // 生成诗文
+        const poemContainer = document.getElementById('poem-container');
+        
+        poem.forEach(line => {
+            // 创建诗句容器
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'poem-line';
+            
+            // 为每个字符创建可点击元素
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                // 跳过标点符号
+                if (['，', '。', '？', '：', '」', '「', '『', '』', '《', '》'].includes(char)) {
+                    const punctSpan = document.createElement('span');
+                    punctSpan.className = 'punctuation';
+                    punctSpan.textContent = char;
+                    lineDiv.appendChild(punctSpan);
+                    continue;
+                }
+                
+                const charSpan = document.createElement('span');
+                charSpan.className = 'character';
+                charSpan.textContent = char;
+                
+                // 设置字符数据
+                if (charData[char]) {
+                    charSpan.dataset.pinyin = charData[char].pinyin;
+                    charSpan.dataset.english = charData[char].english;
+                } else {
+                    charSpan.dataset.pinyin = '?';
+                    charSpan.dataset.english = 'no translation';
+                }
+                
+                // 点击事件
+                let clickCount = 0;
+                charSpan.addEventListener('click', function() {
+                    clickCount = (clickCount + 1) % 3;
+                    this.classList.remove('pinyin', 'english');
+                    if (clickCount === 1) this.classList.add('pinyin');
+                    else if (clickCount === 2) this.classList.add('english');
+                });
+                
+                lineDiv.appendChild(charSpan);
+            }
+            
+            // 创建操作按钮容器
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'line-actions';
+            
+            // 朗读按钮
+            const readBtn = document.createElement('button');
+            readBtn.className = 'action-btn';
+            readBtn.textContent = '朗读';
+            readBtn.addEventListener('click', function() {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(line);
+                    utterance.lang = 'zh-CN';
+                    speechSynthesis.speak(utterance);
+                } else {
+                    alert('您的浏览器不支持语音合成功能');
+                }
+            });
+            
+            // 翻译按钮
+            const translateBtn = document.createElement('button');
+            translateBtn.className = 'action-btn';
+            translate

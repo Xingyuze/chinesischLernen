@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《天问》第九段</title>
+    <style>
+        body {
+            font-family: "SimSun", "宋体", serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #f8f4e9;
+            color: #333;
+            line-height: 2.2;
+            font-size: 2em;
+        }
+        h1 {
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #d4a76a;
+            padding-bottom: 15px;
+            font-size: 1.5em;
+        }
+        .poem-line {
+            margin: 25px 0;
+            text-align: center;
+        }
+        .character {
+            display: inline-block;
+            min-width: 1.2em;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            margin: 0 3px;
+        }
+        .character:hover {
+            background-color: #f0e6d2;
+        }
+        .character.pinyin::after {
+            content: attr(data-pinyin);
+            position: absolute;
+            top: -1.8em;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            font-size: 0.8em;
+            color: #8b4513;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .character.english::after {
+            content: attr(data-english);
+            position: absolute;
+            top: -3.5em;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+            font-size: 0.8em;
+            color: #8b4513;
+            max-width: 300px;
+            word-wrap: break-word;
+            z-index: 10;
+        }
+        .line-actions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 15px 0 30px;
+        }
+        .action-btn {
+            background-color: #d4a76a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: background-color 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #b38b5a;
+        }
+        .translations {
+            background-color: #fff;
+            border: 2px solid #d4a76a;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 90%;
+            display: none;
+            font-size: 0.7em;
+        }
+        .translation {
+            margin: 12px 0;
+            line-height: 1.6;
+        }
+        .language {
+            font-weight: bold;
+            color: #8b4513;
+            display: inline-block;
+            min-width: 100px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #8b4513;
+            font-size: 0.7em;
+        }
+        .punctuation {
+            cursor: default;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>《天问》第九段</h1>
+    
+    <div id="poem-container">
+        <!-- 诗句将通过JavaScript动态生成 -->
+    </div>
+    
+    <div class="footer">
+        <p>古诗文辅助阅览器 &copy; 2023</p>
+    </div>
+
+    <script>
+        // 诗文数据
+        const poem = [
+            "初汤臣挚，后兹承辅。",
+            "何卒官汤，尊食宗绪？",
+            "勋阖梦生，少离散亡。",
+            "何壮武厉，能流厥严？",
+            "彭铿斟雉，帝何飨？",
+            "受寿永多，夫何久长？",
+            "中央共牧，后何怒？",
+            "蜂蛾微命，力何固？",
+            "惊女采薇，鹿何祐？",
+            "北至回水，萃何喜？",
+            "兄有噬犬，弟何欲？",
+            "易之以百两，卒无禄。",
+            "薄暮雷电，归何忧？",
+            "厥严不奉，帝何求？",
+            "伏匿穴处，爰何云？",
+            "荆勋作师，夫何长？",
+            "悟过改更，我又何言？",
+            "吴光争国，久余是胜。",
+            "何环穿自闾社丘陵，爰出子文？",
+            "吾告堵敖以不长。",
+            "何试上自予，忠名弥彰？"
+        ];
+
+        // 汉字数据 - 拼音和英文翻译
+        const charData = {
+            "初": { pinyin: "chū", english: "beginning" },
+            "汤": { pinyin: "tāng", english: "Tang" },
+            "臣": { pinyin: "chén", english: "minister" },
+            "挚": { pinyin: "zhì", english: "Zhi" },
+            "后": { pinyin: "hòu", english: "later" },
+            "兹": { pinyin: "zī", english: "this" },
+            "承": { pinyin: "chéng", english: "inherit" },
+            "辅": { pinyin: "fǔ", english: "assist" },
+            "何": { pinyin: "hé", english: "why" },
+            "卒": { pinyin: "zú", english: "finally" },
+            "官": { pinyin: "guān", english: "official" },
+            "尊": { pinyin: "zūn", english: "honor" },
+            "食": { pinyin: "shí", english: "eat" },
+            "宗": { pinyin: "zōng", english: "ancestor" },
+            "绪": { pinyin: "xù", english: "lineage" },
+            "勋": { pinyin: "xūn", english: "merit" },
+            "阖": { pinyin: "hé", english: "close" },
+            "梦": { pinyin: "mèng", english: "dream" },
+            "生": { pinyin: "shēng", english: "birth" },
+            "少": { pinyin: "shǎo", english: "young" },
+            "离": { pinyin: "lí", english: "leave" },
+            "散": { pinyin: "sàn", english: "scatter" },
+            "亡": { pinyin: "wáng", english: "die" },
+            "壮": { pinyin: "zhuàng", english: "strong" },
+            "武": { pinyin: "wǔ", english: "martial" },
+            "厉": { pinyin: "lì", english: "severe" },
+            "能": { pinyin: "néng", english: "can" },
+            "流": { pinyin: "liú", english: "flow" },
+            "厥": { pinyin: "jué", english: "his" },
+            "严": { pinyin: "yán", english: "majesty" },
+            "彭": { pinyin: "péng", english: "Peng" },
+            "铿": { pinyin: "kēng", english: "Keng" },
+            "斟": { pinyin: "zhēn", english: "pour" },
+            "雉": { pinyin: "zhì", english: "pheasant" },
+            "帝": { pinyin: "dì", english: "emperor" },
+            "飨": { pinyin: "xiǎng", english: "feast" },
+            "受": { pinyin: "shòu", english: "receive" },
+            "寿": { pinyin: "shòu", english: "longevity" },
+            "永": { pinyin: "yǒng", english: "forever" },
+            "多": { pinyin: "duō", english: "many" },
+            "夫": { pinyin: "fū", english: "man" },
+            "久": { pinyin: "jiǔ", english: "long" },
+            "长": { pinyin: "cháng", english: "length" },
+            "中": { pinyin: "zhōng", english: "center" },
+            "央": { pinyin: "yāng", english: "middle" },
+            "共": { pinyin: "gòng", english: "together" },
+            "牧": { pinyin: "mù", english: "herd" },
+            "怒": { pinyin: "nù", english: "anger" },
+            "蜂": { pinyin: "fēng", english: "bee" },
+            "蛾": { pinyin: "é", english: "moth" },
+            "微": { pinyin: "wēi", english: "tiny" },
+            "命": { pinyin: "mìng", english: "life" },
+            "力": { pinyin: "lì", english: "strength" },
+            "固": { pinyin: "gù", english: "firm" },
+            "惊": { pinyin: "jīng", english: "startle" },
+            "女": { pinyin: "nǚ", english: "woman" },
+            "采": { pinyin: "cǎi", english: "gather" },
+            "薇": { pinyin: "wēi", english: "fern" },
+            "鹿": { pinyin: "lù", english: "deer" },
+            "祐": { pinyin: "yòu", english: "bless" },
+            "北": { pinyin: "běi", english: "north" },
+            "至": { pinyin: "zhì", english: "arrive" },
+            "回": { pinyin: "huí", english: "return" },
+            "水": { pinyin: "shuǐ", english: "water" },
+            "萃": { pinyin: "cuì", english: "gather" },
+            "喜": { pinyin: "xǐ", english: "happy" },
+            "兄": { pinyin: "xiōng", english: "elder brother" },
+            "有": { pinyin: "yǒu", english: "have" },
+            "噬": { pinyin: "shì", english: "bite" },
+            "犬": { pinyin: "quǎn", english: "dog" },
+            "弟": { pinyin: "dì", english: "younger brother" },
+            "欲": { pinyin: "yù", english: "desire" },
+            "易": { pinyin: "yì", english: "exchange" },
+            "之": { pinyin: "zhī", english: "it" },
+            "以": { pinyin: "yǐ", english: "with" },
+            "百": { pinyin: "bǎi", english: "hundred" },
+            "两": { pinyin: "liǎng", english: "tael" },
+            "无": { pinyin: "wú", english: "without" },
+            "禄": { pinyin: "lù", english: "salary" },
+            "薄": { pinyin: "bó", english: "thin" },
+            "暮": { pinyin: "mù", english: "dusk" },
+            "雷": { pinyin: "léi", english: "thunder" },
+            "电": { pinyin: "diàn", english: "lightning" },
+            "归": { pinyin: "guī", english: "return" },
+            "忧": { pinyin: "yōu", english: "worry" },
+            "不": { pinyin: "bù", english: "not" },
+            "奉": { pinyin: "fèng", english: "uphold" },
+            "求": { pinyin: "qiú", english: "seek" },
+            "伏": { pinyin: "fú", english: "hide" },
+            "匿": { pinyin: "nì", english: "conceal" },
+            "穴": { pinyin: "xué", english: "cave" },
+            "处": { pinyin: "chǔ", english: "dwell" },
+            "爰": { pinyin: "yuán", english: "then" },
+            "云": { pinyin: "yún", english: "say" },
+            "荆": { pinyin: "jīng", english: "Jing" },
+            "作": { pinyin: "zuò", english: "make" },
+            "师": { pinyin: "shī", english: "teacher" },
+            "长": { pinyin: "zhǎng", english: "chief" },
+            "悟": { pinyin: "wù", english: "realize" },
+            "过": { pinyin: "guò", english: "mistake" },
+            "改": { pinyin: "gǎi", english: "change" },
+            "更": { pinyin: "gēng", english: "alter" },
+            "我": { pinyin: "wǒ", english: "I" },
+            "又": { pinyin: "yòu", english: "again" },
+            "言": { pinyin: "yán", english: "speak" },
+            "吴": { pinyin: "wú", english: "Wu" },
+            "光": { pinyin: "guāng", english: "light" },
+            "争": { pinyin: "zhēng", english: "fight" },
+            "国": { pinyin: "guó", english: "state" },
+            "久": { pinyin: "jiǔ", english: "long" },
+            "余": { pinyin: "yú", english: "I" },
+            "是": { pinyin: "shì", english: "this" },
+            "胜": { pinyin: "shèng", english: "victory" },
+            "环": { pinyin: "huán", english: "circle" },
+            "穿": { pinyin: "chuān", english: "pierce" },
+            "自": { pinyin: "zì", english: "from" },
+            "闾": { pinyin: "lǘ", english: "village" },
+            "社": { pinyin: "shè", english: "altar" },
+            "丘": { pinyin: "qiū", english: "hill" },
+            "陵": { pinyin: "líng", english: "mound" },
+            "出": { pinyin: "chū", english: "produce" },
+            "子": { pinyin: "zǐ", english: "child" },
+            "文": { pinyin: "wén", english: "Wen" },
+            "吾": { pinyin: "wú", english: "I" },
+            "告": { pinyin: "gào", english: "tell" },
+            "堵": { pinyin: "dǔ", english: "block" },
+            "敖": { pinyin: "áo", english: "Ao" },
+            "试": { pinyin: "shì", english: "try" },
+            "上": { pinyin: "shàng", english: "above" },
+            "予": { pinyin: "yǔ", english: "give" },
+            "忠": { pinyin: "zhōng", english: "loyal" },
+            "名": { pinyin: "míng", english: "name" },
+            "弥": { pinyin: "mí", english: "more" },
+            "彰": { pinyin: "zhāng", english: "manifest" }
+        };
+
+        // 完整翻译数据（21句诗的7种语言翻译）
+        const translations = {
+            "初汤臣挚，后兹承辅。": {
+                english: "First Tang's minister Zhi, later inherited assistance.",
+                german: "Zuerst Tangs Minister Zhi, später erbte Unterstützung.",
+                french: "D'abord le ministre Zhi de Tang, plus tard hérita d'aide.",
+                italian: "Prima il ministro Zhi di Tang, poi ereditò assistenza.",
+                spanish: "Primero el ministro Zhi de Tang, luego heredó ayuda.",
+                arabic: "أولاً وزير تانغ تشي، ثم ورث المساعدة.",
+                japanese: "初め湯の臣は挚、後に茲の輔を承く。"
+            },
+            "何卒官汤，尊食宗绪？": {
+                english: "Why finally serve Tang, honoring ancestral lineage?",
+                german: "Warum schließlich Tang dienen, die Ahnenlinie ehrend?",
+                french: "Pourquoi finalement servir Tang, honorant la lignée ancestrale ?",
+                italian: "Perché finalmente servire Tang, onorando la stirpe ancestrale?",
+                spanish: "¿Por qué finalmente servir a Tang, honrando el linaje ancestral?",
+                arabic: "لماذا أخيرًا خدم تانغ، تكريمًا للسلالة الأسلاف؟",
+                japanese: "何ぞ卒に湯に官し、宗緒を尊び食らわん？"
+            },
+            "勋阖梦生，少离散亡。": {
+                english: "Meritorious He dreamed of birth, young he scattered and died.",
+                german: "Der verdienstvolle He träumte von Geburt, jung zerstreute er sich und starb.",
+                french: "Le méritoire He rêva de naissance, jeune il se dispersa et mourut.",
+                italian: "Il meritevole He sognò la nascita, giovane si disperse e morì.",
+                spanish: "El meritorio He soñó con nacer, joven se dispersó y murió.",
+                arabic: "حلم هي المشرّف بالولادة، شابًا تفرق ومات.",
+                japanese: "勲なる阖は夢に生じ、少にして離散亡す。"
+            },
+            "何壮武厉，能流厥严？": {
+                english: "Why strong and martial severe, could spread his majesty?",
+                german: "Warum stark und kriegerisch streng, konnte seine Majestät verbreiten?",
+                french: "Pourquoi fort et martial sévère, pouvait répandre sa majesté ?",
+                italian: "Perché forte e marzialmente severo, poteva diffondere la sua maestà?",
+                spanish: "¿Por qué fuerte y marcialmente severo, podía difundir su majestad?",
+                arabic: "لماذا قوي وعسكري شديد، يمكنه نشر جلالته؟",
+                japanese: "何ぞ壮武にして厲しく、能く厥の厳を流さん？"
+            },
+            "彭铿斟雉，帝何飨？": {
+                english: "Peng Keng poured pheasant, why did the emperor feast?",
+                german: "Peng Keng goss Fasan, warum speiste der Kaiser?",
+                french: "Peng Keng a versé du faisan, pourquoi l'empereur a-t-il festoyé ?",
+                italian: "Peng Keng versò fagiano, perché l'imperatore banchettò?",
+                spanish: "Peng Keng sirvió faisán, ¿por qué el emperador festejó?",
+                arabic: "سكب بنغ كينغ الدراج، لماذا احتفل الإمبراطور؟",
+                japanese: "彭铿は雉を斟ぎ、帝は何ぞ饗わん？"
+            },
+            "受寿永多，夫何久长？": {
+                english: "Receiving longevity forever, why so long lasting?",
+                german: "Langlebigkeit für immer erhaltend, warum so dauerhaft?",
+                french: "Recevant la longévité pour toujours, pourquoi si durable ?",
+                italian: "Ricevendo longevità per sempre, perché così duratura?",
+                spanish: "Recibiendo longevidad para siempre, ¿por qué tan duradera?",
+                arabic: "تلقي طول العمر إلى الأبد، لماذا تدوم طويلاً؟",
+                japanese: "寿を受くること永く多し、夫何ぞ久長ならん？"
+            },
+            "中央共牧，后何怒？": {
+                english: "Together herding in center, why was the king angry?",
+                german: "Zusammen in der Mitte hütend, warum war der König wütend?",
+                french: "Ensemble en paissant au centre, pourquoi le roi était-il en colère ?",
+                italian: "Insieme pascolando al centro, perché il re era arrabbiato?",
+                spanish: "Pastando juntos en el centro, ¿por qué el rey estaba enojado?",
+                arabic: "معًا يرعون في الوسط، لماذا كان الملك غاضبًا؟",
+                japanese: "中央に共に牧し、后は何ぞ怒る？"
+            },
+            "蜂蛾微命，力何固？": {
+                english: "Bees and moths tiny lives, how is their strength firm?",
+                german: "Bienen und Motten winzige Leben, wie ist ihre Kraft fest?",
+                french: "Abeilles et papillons vies minuscules, comment leur force est-elle ferme ?",
+                italian: "Api e falene minuscole vite, come è ferma la loro forza?",
+                spanish: "Abejas y polillas vidas diminutas, ¿cómo es su fuerza firme?",
+                arabic: "حياة النحل والعث الصغيرة، كيف تكون قوتهم راسخة؟",
+                japanese: "蜂蛾の微命、力は何ぞ固き？"
+            },
+            "惊女采薇，鹿何祐？": {
+                english: "Startling women picking ferns, how did deer bless?",
+                german: "Erschreckende Frauen, die Farne pflücken, wie segneten Hirsche?",
+                french: "Effrayant les femmes cueillant des fougères, comment les cerfs ont-ils béni ?",
+                italian: "Spaventando donne che raccolgono felci, come hanno benedetto i cervi?",
+                spanish: "Asustando a mujeres que recogen helechos, ¿cómo bendijeron los ciervos?",
+                arabic: "إخافة النساء اللواتي يقطعن السرخس، كيف باركت الغزلان؟",
+                japanese: "女を驚かして薇を采らしめ、鹿は何ぞ祐けん？"
+            },
+            "北至回水，萃何喜？": {
+                english: "North arriving at winding water, gathering why happy?",
+                german: "Norden ankommend am windenden Wasser, versammelnd warum glücklich?",
+                french: "Nord arrivant à l'eau sinueuse, rassemblant pourquoi heureux ?",
+                italian: "Nord arrivando all'acqua tortuosa, radunando perché felice?",
+                spanish: "Norte llegando al agua serpenteante, reuniéndose ¿por qué feliz?",
+                arabic: "الوصول شمالاً إلى الماء المتعرج، التجمع لماذا سعيد؟",
+                japanese: "北に回水に至り、萃まって何ぞ喜ぶ？"
+            },
+            "兄有噬犬，弟何欲？": {
+                english: "Elder brother has biting dog, what does younger brother desire?",
+                german: "Älterer Bruder hat beißenden Hund, was begehrt jüngerer Bruder?",
+                french: "Le frère aîné a un chien mordant, que désire le frère cadet ?",
+                italian: "Fratello maggiore ha cane mordace, cosa desidera fratello minore?",
+                spanish: "Hermano mayor tiene perro mordedor, ¿qué desea hermano menor?",
+                arabic: "الأخ الأكبر لديه كلب عاض، ماذا يرغب الأخ الأصغر؟",
+                japanese: "兄に噬犬有り、弟は何ぞ欲せん？"
+            },
+            "易之以百两，卒无禄。": {
+                english: "Exchanging it for hundred taels, finally without salary.",
+                german: "Es gegen hundert Tael eintauschend, schließlich ohne Gehalt.",
+                french: "L'échangeant contre cent taels, finalement sans salaire.",
+                italian: "Scambiandolo per cento tael, infine senza stipendio.",
+                spanish: "Intercambiándolo por cien taeles, finalmente sin salario.",
+                arabic: "مبادلته بمائة طيل، في النهاية بدون راتب.",
+                japanese: "之を百両に易え、卒に禄無し。"
+            },
+            "薄暮雷电，归何忧？": {
+                english: "Dusk with thunder lightning, returning why worry?",
+                german: "Abenddämmerung mit Donnerblitz, zurückkehrend warum sorgen?",
+                french: "Crépuscule avec éclair de tonnerre, retournant pourquoi s'inquiéter ?",
+                italian: "Crepuscolo con fulmine tuono, tornando perché preoccuparsi?",
+                spanish: "Anochecer con relámpago de trueno, regresando ¿por qué preocuparse?",
+                arabic: "الغسق مع البرق الرعدي، العودة لماذا القلق؟",
+                japanese: "薄暮に雷電し、帰るに何ぞ憂えん？"
+            },
+            "厥严不奉，帝何求？": {
+                english: "Not upholding his majesty, what does the emperor seek?",
+                german: "Seine Majestät nicht aufrechterhaltend, was sucht der Kaiser?",
+                french: "Ne maintenant pas sa majesté, que cherche l'empereur ?",
+                italian: "Non sostenendo la sua maestà, cosa cerca l'imperatore?",
+                spanish: "No manteniendo su majestad, ¿qué busca el emperador?",
+                arabic: "عدم الحفاظ على جلالته، ماذا يبحث الإمبراطور؟",
+                japanese: "厥の厳を奉ぜず、帝は何を求む？"
+            },
+            "伏匿穴处，爰何云？": {
+                english: "Hiding concealed in caves, then what to say?",
+                german: "Versteckt in Höhlen verborgen, dann was sagen?",
+                french: "Caché dissimulé dans des grottes, alors que dire ?",
+                italian: "Nascondendosi nascosto in caverne, allora cosa dire?",
+                spanish: "Ocultándose escondido en cuevas, entonces ¿qué decir?",
+                arabic: "الاختباء مختبئًا في الكهوف، ثم ماذا نقول؟",
+                japanese: "伏匿して穴に処り、爰何をか云わん？"
+            },
+            "荆勋作师，夫何长？": {
+                english: "Jing's merit making teacher, why so long lasting?",
+                german: "Jings Verdienst als Lehrer machend, warum so dauerhaft?",
+                french: "Le mérite de Jing faisant un enseignant, pourquoi si durable ?",
+                italian: "Il merito di Jing facendo insegnante, perché così duraturo?",
+                spanish: "El mérito de Jing haciendo maestro, ¿por qué tan duradero?",
+                arabic: "جعل جينغ الاستحقاق معلمًا، لماذا يدوم طويلاً؟",
+                japanese: "荆の勲は師と作り、夫何ぞ長き？"
+            },
+            "悟过改更，我又何言？": {
+                english: "Realizing faults and changing, what more can I say?",
+                german: "Fehler erkennend und ändernd, was kann ich mehr sagen?",
+                french: "Réalisant les fautes et changeant, que puis-je dire de plus ?",
+                italian: "Riconoscendo errori e cambiando, cosa posso dire di più?",
+                spanish: "Reconociendo errores y cambiando, ¿qué más puedo decir?",
+                arabic: "إدراك الأخطاء والتغيير، ماذا يمكنني أن أقول أكثر؟",
+                japanese: "過ちを悟り改更し、我又何をか言わん？"
+            },
+            "吴光争国，久余是胜。": {
+                english: "Wu Guang contended for state, long I was victorious.",
+                german: "Wu Guang stritt um Staat, lange war ich siegreich.",
+                french: "Wu Guang a disputé l'état, longtemps j'ai été victorieux.",
+                italian: "Wu Guang contese lo stato, a lungo io vinsi.",
+                spanish: "Wu Guang disputó el estado, durante mucho tiempo yo vencí.",
+                arabic: "تنافس وو غوانغ على الدولة، لفترة طويلة كنت منتصرًا.",
+                japanese: "吴光は国を争い、久しく余是に勝つ。"
+            },
+            "何环穿自闾社丘陵，爰出子文？": {
+                english: "Why circling through village altars and hills, then produced Ziwen?",
+                german: "Warum durch Dorfaltäre und Hügel kreisend, dann Ziwen hervorbringend?",
+                french: "Pourquoi tournant autour des autels villageois et collines, puis produisant Ziwen ?",
+                italian: "Perché girando attorno ad altari di villaggio e colline, poi producendo Ziwen?",
+                spanish: "¿Por qué rodeando altares de aldeas y colinas, luego produciendo Ziwen?",
+                arabic: "لماذا الدوران حول مذابح القرى والتلال، ثم إنتاج زي وين؟",
+                japanese: "何ぞ環り穿ちて自ら闾社丘陵より、爰に子文を出さん？"
+            },
+            "吾告堵敖以不长。": {
+                english: "I told Du Ao it wouldn't last long.",
+                german: "Ich sagte Du Ao, es würde nicht lange dauern.",
+                french: "J'ai dit à Du Ao que cela ne durerait pas longtemps.",
+                italian: "Dissi a Du Ao che non sarebbe durato a lungo.",
+                spanish: "Le dije a Du Ao que no duraría mucho.",
+                arabic: "أخبرت دو آو أنها لن تدوم طويلاً.",
+                japanese: "吾は堵敖に長からざるを告ぐ。"
+            },
+            "何试上自予，忠名弥彰？": {
+                english: "Why testing above self-giving, loyal name more manifest?",
+                german: "Warum oben Selbsthingabe prüfend, loyaler Name offenbarer?",
+                french: "Pourquoi tester l'abnégation, nom loyal plus manifeste ?",
+                italian: "Perché testare l'abnegazione, nome leale più manifesto?",
+                spanish: "¿Por qué probar la abnegación, nombre leal más manifiesto?",
+                arabic: "لماذا اختبار الإيثار، الاسم المخلص أكثر وضوحًا؟",
+                japanese: "何ぞ上を試み自ら予め、忠名弥く彰る？"
+            }
+        };
+
+        // 生成诗文
+        const poemContainer = document.getElementById('poem-container');
+        
+        poem.forEach(line => {
+            // 创建诗句容器
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'poem-line';
+            
+            // 为每个字符创建可点击元素
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                // 跳过标点符号
+                if (['，', '。', '？', '：', '」', '「', '『', '』', '《', '》'].includes(char)) {
+                    const punctSpan = document.createElement('span');
+                    punctSpan.className = 'punctuation';
+                    punctSpan.textContent = char;
+                    lineDiv.appendChild(punctSpan);
+                    continue;
+                }
+                
+                const charSpan = document.createElement('span');
+                charSpan.className = 'character';
+                charSpan.textContent = char;
+                
+                // 设置字符数据
+                if (charData[char]) {
+                    charSpan.dataset.pinyin = charData[char].pinyin;
+                    charSpan.dataset.english = charData[char].english;
+                } else {
+                    charSpan.dataset.pinyin = '?';
+                    charSpan.dataset.english = 'no translation';
+                }
+                
+                // 点击事件
+                let clickCount = 0;
+                charSpan.addEventListener('click', function() {
+                    clickCount = (clickCount + 1) % 3;
+                    this.classList.remove('pinyin', 'english');
+                    if (clickCount === 1) this.classList.add('pinyin');
+                    else if (clickCount === 2) this.classList.add('english');
+                });
+                
+                lineDiv.appendChild(charSpan);
+            }
+            
+            // 创建操作按钮容器
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'line-actions';
+            
+            // 朗读按钮
+            const readBtn = document.createElement('button');
+            readBtn.className = 'action-btn';
+            readBtn.textContent = '朗读';
+            readBtn.addEventListener('click', function() {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(line);
+                    utterance.lang = 'zh-CN';
+                    speechSynthesis.speak(utterance);
+                } else {
+                    alert('您的浏览器不支持语音合成功能');
+                }
+            });
+            
+            // 翻译按钮
+            const translateBtn = document.createElement('button');
+            translateBtn.className = 'action-btn';
+            translateBtn.textContent = '翻译';
+            translateBtn.addEventListener('click', function() {
+                let translationsDiv = lineDiv.nextElementSibling;
+                if (!translationsDiv || !translationsDiv.classList.contains('translations')) {
+                    translationsDiv = document.createElement('div');
+                    translationsDiv.className = 'translations';
+                    lineDiv.parentNode.insertBefore(translationsDiv, lineDiv.nextSibling);
+                }
+                
+                if (translationsDiv.style.display === 'block') {
+                    translationsDiv.style.display = 'none';
+                    translateBtn.textContent = '翻译';
+                } else {
+                    const lineTranslations = translations[line];
+                    translationsDiv.innerHTML = `
+                        <div class="translation"><span class="language">English:</span> ${lineTranslations.english}</div>
+                        <div class="translation"><span class="language">Deutsch:</span> ${lineTranslations.german}</div>
+                        <div class="translation"><span class="language">Français:</span> ${lineTranslations.french}</div>
+                        <div class="translation"><span class="language">Italiano:</span> ${lineTranslations.italian}</div>
+                        <div class="translation"><span class="language">Español:</span> ${lineTranslations.spanish}</div>
+                        <div class="translation"><span class="language">العربية:</span> ${lineTranslations.arabic}</div>
+                        <div class="translation"><span class="language">日本語:</span> ${lineTranslations.japanese}</div>
+                    `;
+                    translationsDiv.style.display = 'block';
+                    translateBtn.textContent = '隐藏翻译';
+                }
+            });
+            
+            actionsDiv.appendChild(readBtn);
+            actionsDiv.appendChild(translateBtn);
+            
+            poemContainer.appendChild(lineDiv);
+            poemContainer.appendChild(actionsDiv);
+        });
+    </script>
+</body>
+</html>
