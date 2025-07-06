@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>辛弃疾《水龙吟》儿童互动版</title>
+  <style>
+    body {
+      font-size: 16px;
+      margin: 0;
+      padding: 20px;
+      background: #f9f4ff;
+      overflow-x: hidden;
+      font-family: "Comic Sans MS", "楷体", sans-serif;
+    }
+    .poem-container {
+      font-family: "楷体", "STKaiti", serif;
+      text-align: center;
+      line-height: 1.8em;
+      padding: 2em;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      font-size: 4.5em;
+      max-width: 1000px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      border: 3px solid #ff9e7d;
+    }
+    .title-section {
+      margin-bottom: 1.5em;
+      position: relative;
+    }
+    h1 {
+      font-size: 0.5em;
+      margin-bottom: 0.2em;
+      color: #ff5722;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    h2 {
+      font-size: 0.4em;
+      margin-top: 0;
+      margin-bottom: 0.5em;
+      color: #9c27b0;
+    }
+    .title-controls {
+      display: flex;
+      justify-content: center;
+      gap: 1em;
+      margin-top: 0.5em;
+      font-size: 0.25em;
+    }
+    .title-controls button {
+      padding: 0.8em 1.5em;
+      background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 1.5em;
+      transition: all 0.3s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      font-weight: bold;
+    }
+    .title-controls button:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+    }
+    .verse-wrapper {
+      position: relative;
+      margin: 1.5em 0;
+      min-height: 4em;
+      padding-top: 1.5em;
+      background-color: rgba(255, 245, 245, 0.3);
+      border-radius: 15px;
+      transition: all 0.3s;
+    }
+    .verse-wrapper:hover {
+      background-color: rgba(255, 230, 230, 0.5);
+      transform: translateY(-3px);
+    }
+    .verse {
+      transition: all 0.5s;
+      position: relative;
+      display: inline-block;
+      z-index: 2;
+      padding: 0.2em 0;
+      border-radius: 10px;
+    }
+    .highlight-verse {
+      animation: verse-glow 2s infinite alternate;
+      background-color: rgba(255, 236, 179, 0.3);
+    }
+    @keyframes verse-glow {
+      from { 
+        text-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+        transform: scale(1);
+      }
+      to { 
+        text-shadow: 0 0 20px rgba(255, 152, 0, 0.8);
+        transform: scale(1.02);
+      }
+    }
+    .character {
+      display: inline-block;
+      width: 1em;
+      margin: 0;
+      position: relative;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: all 0.3s;
+      vertical-align: middle;
+      text-align: center;
+      z-index: 1;
+      padding: 0.2em 0;
+      border-radius: 50%;
+    }
+    .character:hover {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    .character.active {
+      opacity: 1;
+      transform: scale(1.3);
+    }
+    .pinyin-row {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 1.5em;
+      display: flex;
+      justify-content: center;
+    }
+    .pinyin {
+      display: inline-block;
+      font-size: 0.4em;
+      color: #ff4081;
+      opacity: 0;
+      transition: all 0.5s;
+      width: 1em;
+      text-align: center;
+      margin: 0;
+      font-family: "Comic Sans MS", cursive;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+      position: absolute;
+      transform: translateX(-50%);
+    }
+    .show-pinyin .pinyin {
+      opacity: 1;
+      animation: pinyin-pop 0.5s forwards;
+    }
+    @keyframes pinyin-pop {
+      0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+      80% { transform: translateX(-50%) scale(1.2); }
+      100% { transform: translateX(-50%) scale(1); opacity: 1; }
+    }
+    .verse-controls {
+      display: flex;
+      justify-content: center;
+      gap: 1.5em;
+      margin: 1em 0;
+      font-size: 0.3em;
+      z-index: 3;
+      position: relative;
+    }
+    .verse-controls button {
+      padding: 1em 2em;
+      background: linear-gradient(135deg, #64b5f6, #42a5f5);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 1.3em;
+      transition: all 0.3s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      font-weight: bold;
+    }
+    .verse-controls button:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+    }
+    .verse-controls button:active {
+      transform: translateY(1px);
+    }
+    .translation-panel {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s ease;
+      background: linear-gradient(to bottom, #f8fafc, #f0f4f8);
+      border-radius: 10px;
+      margin: 1em auto;
+      width: 90%;
+      font-size: 0.3em;
+      text-align: left;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+    .translation-panel.active {
+      max-height: 500px;
+      padding: 1.5em;
+      border: 2px dashed #81d4fa;
+      animation: panel-bounce 0.5s;
+    }
+    @keyframes panel-bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    .translation-panel p {
+      margin: 0.8em 0;
+      line-height: 1.6;
+      padding-left: 1em;
+      border-left: 3px solid #64b5f6;
+      transition: all 0.3s;
+    }
+    .translation-panel p:hover {
+      background-color: rgba(100, 181, 246, 0.1);
+      transform: translateX(5px);
+    }
+    
+    /* 儿童友好动画效果 */
+    .bounce { 
+      animation: bounce 1s ease infinite,
+                 char-color-change 2s linear infinite;
+    }
+    .rainbow { 
+      animation: rainbow 2s linear infinite,
+                 char-pulse 0.5s ease infinite;
+    }
+    .jelly { 
+      animation: jelly 0.5s ease infinite alternate;
+    }
+    .spin { 
+      animation: spin 1s ease-in-out infinite;
+    }
+    .magnify { 
+      animation: magnify 1s ease-in-out infinite alternate;
+    }
+    .shake { 
+      animation: shake 0.5s ease infinite;
+    }
+    .float { 
+      animation: float 2s ease-in-out infinite;
+    }
+    .dance { 
+      animation: dance 1s ease infinite;
+    }
+    
+    /* 动画关键帧 */
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-0.5em) scale(1.2); }
+    }
+    @keyframes rainbow {
+      0% { color: red; }
+      14% { color: orange; }
+      28% { color: yellow; }
+      42% { color: green; }
+      57% { color: blue; }
+      71% { color: indigo; }
+      85% { color: violet; }
+      100% { color: red; }
+    }
+    @keyframes jelly {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.3); }
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes magnify {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.5); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-0.2em); }
+      75% { transform: translateX(0.2em); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-0.3em); }
+    }
+    @keyframes dance {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(10deg); }
+      75% { transform: rotate(-10deg); }
+    }
+    @keyframes char-color-change {
+      0% { color: #ff5722; }
+      25% { color: #4caf50; }
+      50% { color: #2196f3; }
+      75% { color: #9c27b0; }
+      100% { color: #ff5722; }
+    }
+    @keyframes char-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.5); }
+    }
+    
+    /* 气泡效果增强 */
+    @keyframes bubble-pop {
+      0% { transform: scale(0); opacity: 0.8; background: rgba(255, 64, 129, 0.5); }
+      50% { transform: scale(3); opacity: 0.4; background: rgba(100, 181, 246, 0.5); }
+      100% { transform: scale(5); opacity: 0; background: rgba(156, 39, 176, 0.3); }
+    }
+    
+    /* 标点符号样式 */
+    .punctuation {
+      display: inline-block;
+      margin: 0;
+      color: #ff9800;
+      font-weight: bold;
+      transform: scale(1.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="poem-container">
+    <div class="title-section">
+      <h1 id="poem-title">水龙吟·过南剑双溪楼</h1>
+      <h2 id="poem-author">辛弃疾</h2>
+      <div class="title-controls">
+        <button onclick="readTitle()">朗读标题</button>
+        <button onclick="celebrate()">庆祝</button>
+      </div>
+    </div>
+    
+    <!-- 第一句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">jǔ</span>
+        <span class="pinyin">tóu</span>
+        <span class="pinyin">xī</span>
+        <span class="pinyin">běi</span>
+        <span class="pinyin">fú</span>
+        <span class="pinyin">yún</span>
+      </div>
+      <div class="verse" id="verse1">
+        <span class="character" style="color: #1a56db;">举</span>
+        <span class="character" style="color: #d92626;">头</span>
+        <span class="character" style="color: #16a34a;">西</span>
+        <span class="character" style="color: #d97706;">北</span>
+        <span class="character" style="color: #9333ea;">浮</span>
+        <span class="character" style="color: #059669;">云</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse1')">朗读本句</button>
+        <button onclick="toggleTranslation('verse1')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse1-translation">
+        <p><strong>English:</strong> Raising my head to see floating clouds in the northwest</p>
+        <p><strong>Deutsch:</strong> Ich hebe den Kopf und sehe Wolken im Nordwesten</p>
+        <p><strong>Français:</strong> Levant les yeux vers les nuages flottants au nord-ouest</p>
+        <p><strong>日本語:</strong> 頭を上げて北西に浮かぶ雲を見る</p>
+        <p><strong>한국어:</strong> 머리를 들어 북서쪽에 뜬 구름을 보다</p>
+        <p><strong>Tiếng Việt:</strong> Ngẩng đầu nhìn mây trôi nổi tây bắc</p>
+      </div>
+    </div>
+    
+    <!-- 第二句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">yǐ</span>
+        <span class="pinyin">tiān</span>
+        <span class="pinyin">wàn</span>
+        <span class="pinyin">lǐ</span>
+        <span class="pinyin">xū</span>
+        <span class="pinyin">cháng</span>
+        <span class="pinyin">jiàn</span>
+      </div>
+      <div class="verse" id="verse2">
+        <span class="character" style="color: #0284c7;">倚</span>
+        <span class="character" style="color: #c026d3;">天</span>
+        <span class="character" style="color: #1a56db;">万</span>
+        <span class="character" style="color: #d92626;">里</span>
+        <span class="character" style="color: #16a34a;">须</span>
+        <span class="character" style="color: #d97706;">长</span>
+        <span class="character" style="color: #9333ea;">剑</span>
+        <span class="punctuation">。</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse2')">朗读本句</button>
+        <button onclick="toggleTranslation('verse2')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse2-translation">
+        <p><strong>English:</strong> Need a long sword reaching ten thousand miles up to the sky</p>
+        <p><strong>Deutsch:</strong> Brauche ein langes Schwert, das zehntausend Meilen bis zum Himmel reicht</p>
+        <p><strong>Français:</strong> Il me faut une longue épée atteignant dix mille lieues jusqu'au ciel</p>
+        <p><strong>日本語:</strong> 天まで届く万里の長剣が必要だ</p>
+        <p><strong>한국어:</strong> 하늘에 닿는 만리의 긴 칼이 필요하다</p>
+        <p><strong>Tiếng Việt:</strong> Cần thanh kiếm dài vạn dặm chạm tới trời</p>
+      </div>
+    </div>
+    
+    <!-- 第三句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">rén</span>
+        <span class="pinyin">yán</span>
+        <span class="pinyin">cǐ</span>
+        <span class="pinyin">dì</span>
+      </div>
+      <div class="verse" id="verse3">
+        <span class="character" style="color: #059669;">人</span>
+        <span class="character" style="color: #0284c7;">言</span>
+        <span class="character" style="color: #c026d3;">此</span>
+        <span class="character" style="color: #1a56db;">地</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse3')">朗读本句</button>
+        <button onclick="toggleTranslation('verse3')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse3-translation">
+        <p><strong>English:</strong> People say in this place</p>
+        <p><strong>Deutsch:</strong> Die Leute sagen, an diesem Ort</p>
+        <p><strong>Français:</strong> Les gens disent qu'en ce lieu</p>
+        <p><strong>日本語:</strong> 人々はこの場所で</p>
+        <p><strong>한국어:</strong> 사람들은 이곳에서</p>
+        <p><strong>Tiếng Việt:</strong> Người ta nói nơi đây</p>
+      </div>
+    </div>
+    
+    <!-- 第四句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">yè</span>
+        <span class="pinyin">shēn</span>
+        <span class="pinyin">cháng</span>
+        <span class="pinyin">jiàn</span>
+      </div>
+      <div class="verse" id="verse4">
+        <span class="character" style="color: #d92626;">夜</span>
+        <span class="character" style="color: #16a34a;">深</span>
+        <span class="character" style="color: #d97706;">长</span>
+        <span class="character" style="color: #9333ea;">见</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse4')">朗读本句</button>
+        <button onclick="toggleTranslation('verse4')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse4-translation">
+        <p><strong>English:</strong> Often see at midnight</p>
+        <p><strong>Deutsch:</strong> Sieht man oft mitten in der Nacht</p>
+        <p><strong>Français:</strong> On voit souvent à minuit</p>
+        <p><strong>日本語:</strong> 夜中によく見える</p>
+        <p><strong>한국어:</strong> 밤중에 자주 보인다</p>
+        <p><strong>Tiếng Việt:</strong> Đêm khuya thường thấy</p>
+      </div>
+    </div>
+    
+    <!-- 第五句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">dǒu</span>
+        <span class="pinyin">niú</span>
+        <span class="pinyin">guāng</span>
+        <span class="pinyin">yàn</span>
+      </div>
+      <div class="verse" id="verse5">
+        <span class="character" style="color: #059669;">斗</span>
+        <span class="character" style="color: #0284c7;">牛</span>
+        <span class="character" style="color: #c026d3;">光</span>
+        <span class="character" style="color: #1a56db;">焰</span>
+        <span class="punctuation">。</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse5')">朗读本句</button>
+        <button onclick="toggleTranslation('verse5')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse5-translation">
+        <p><strong>English:</strong> The shining light between Dipper and Ox constellations</p>
+        <p><strong>Deutsch:</strong> Das leuchtende Licht zwischen dem Großen Wagen und dem Sternbild Stier</p>
+        <p><strong>Français:</strong> La lumière brillante entre les constellations de la Grande Ourse et du Taureau</p>
+        <p><strong>日本語:</strong> 北斗七星と牛宿の間の輝く光</p>
+        <p><strong>한국어:</strong> 북두칠성과 소숙 사이의 빛나는 광채</p>
+        <p><strong>Tiếng Việt:</strong> Ánh sáng giữa sao Bắc Đẩu và sao Ngưu</p>
+      </div>
+    </div>
+    
+    <!-- 第六句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">wǒ</span>
+        <span class="pinyin">jué</span>
+        <span class="pinyin">shān</span>
+        <span class="pinyin">gāo</span>
+      </div>
+      <div class="verse" id="verse6">
+        <span class="character" style="color: #d92626;">我</span>
+        <span class="character" style="color: #16a34a;">觉</span>
+        <span class="character" style="color: #d97706;">山</span>
+        <span class="character" style="color: #9333ea;">高</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse6')">朗读本句</button>
+        <button onclick="toggleTranslation('verse6')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse6-translation">
+        <p><strong>English:</strong> I feel the mountains are high</p>
+        <p><strong>Deutsch:</strong> Ich fühle, die Berge sind hoch</p>
+        <p><strong>Français:</strong> Je sens que les montagnes sont hautes</p>
+        <p><strong>日本語:</strong> 山が高いと感じる</p>
+        <p><strong>한국어:</strong> 산이 높다고 느낀다</p>
+        <p><strong>Tiếng Việt:</strong> Tôi cảm thấy núi cao</p>
+      </div>
+    </div>
+    
+    <!-- 第七句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">tán</span>
+        <span class="pinyin">kōng</span>
+        <span class="pinyin">shuǐ</span>
+        <span class="pinyin">lěng</span>
+      </div>
+      <div class="verse" id="verse7">
+        <span class="character" style="color: #059669;">潭</span>
+        <span class="character" style="color: #0284c7;">空</span>
+        <span class="character" style="color: #c026d3;">水</span>
+        <span class="character" style="color: #1a56db;">冷</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse7')">朗读本句</button>
+        <button onclick="toggleTranslation('verse7')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse7-translation">
+        <p><strong>English:</strong> The pool is empty and water cold</p>
+        <p><strong>Deutsch:</strong> Der Teich ist leer und das Wasser kalt</p>
+        <p><strong>Français:</strong> L'étang est vide et l'eau froide</p>
+        <p><strong>日本語:</strong> 池は空で水は冷たい</p>
+        <p><strong>한국어:</strong> 연못은 비어 있고 물은 차갑다</p>
+        <p><strong>Tiếng Việt:</strong> Hồ vắng và nước lạnh</p>
+      </div>
+    </div>
+    
+    <!-- 第八句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">yuè</span>
+        <span class="pinyin">míng</span>
+        <span class="pinyin">xīng</span>
+        <span class="pinyin">dàn</span>
+      </div>
+      <div class="verse" id="verse8">
+        <span class="character" style="color: #d92626;">月</span>
+        <span class="character" style="color: #16a34a;">明</span>
+        <span class="character" style="color: #d97706;">星</span>
+        <span class="character" style="color: #9333ea;">淡</span>
+        <span class="punctuation">。</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse8')">朗读本句</button>
+        <button onclick="toggleTranslation('verse8')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse8-translation">
+        <p><strong>English:</strong> The moon is bright but stars are dim</p>
+        <p><strong>Deutsch:</strong> Der Mond ist hell, aber die Sterne sind schwach</p>
+        <p><strong>Français:</strong> La lune est brillante mais les étoiles sont faibles</p>
+        <p><strong>日本語:</strong> 月は明るいが星は淡い</p>
+        <p><strong>한국어:</strong> 달은 밝지만 별은 희미하다</p>
+        <p><strong>Tiếng Việt:</strong> Trăng sáng nhưng sao mờ</p>
+      </div>
+    </div>
+    
+    <!-- 第九句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">dài</span>
+        <span class="pinyin">rán</span>
+        <span class="pinyin">xī</span>
+        <span class="pinyin">xià</span>
+        <span class="pinyin">kàn</span>
+      </div>
+      <div class="verse" id="verse9">
+        <span class="character" style="color: #059669;">待</span>
+        <span class="character" style="color: #0284c7;">燃</span>
+        <span class="character" style="color: #c026d3;">犀</span>
+        <span class="character" style="color: #1a56db;">下</span>
+        <span class="character" style="color: #d92626;">看</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse9')">朗读本句</button>
+        <button onclick="toggleTranslation('verse9')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse9-translation">
+        <p><strong>English:</strong> Waiting to burn rhinoceros horn and look down</p>
+        <p><strong>Deutsch:</strong> Warte darauf, Nashornhorn zu verbrennen und hinabzublicken</p>
+        <p><strong>Français:</strong> En attendant de brûler la corne de rhinocéros et de regarder en bas</p>
+        <p><strong>日本語:</strong> 犀角を燃やして下を見るのを待つ</p>
+        <p><strong>한국어:</strong> 코뿔소 뿔을 태워 아래를 보기를 기다린다</p>
+        <p><strong>Tiếng Việt:</strong> Đợi đốt sừng tê xem xuống</p>
+      </div>
+    </div>
+    
+    <!-- 第十句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">píng</span>
+        <span class="pinyin">lán</span>
+        <span class="pinyin">què</span>
+        <span class="pinyin">pà</span>
+      </div>
+      <div class="verse" id="verse10">
+        <span class="character" style="color: #16a34a;">凭</span>
+        <span class="character" style="color: #d97706;">栏</span>
+        <span class="character" style="color: #9333ea;">却</span>
+        <span class="character" style="color: #059669;">怕</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse10')">朗读本句</button>
+        <button onclick="toggleTranslation('verse10')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse10-translation">
+        <p><strong>English:</strong> Leaning on the railing but afraid</p>
+        <p><strong>Deutsch:</strong> An das Geländer gelehnt, aber ängstlich</p>
+        <p><strong>Français:</strong> Appuyé sur la balustrade mais effrayé</p>
+        <p><strong>日本語:</strong> 欄干によりかかるが恐れる</p>
+        <p><strong>한국어:</strong> 난간에 기대었지만 두렵다</p>
+        <p><strong>Tiếng Việt:</strong> Tựa lan can nhưng sợ hãi</p>
+      </div>
+    </div>
+    
+    <!-- 第十一句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">fēng</span>
+        <span class="pinyin">léi</span>
+        <span class="pinyin">nù</span>
+        <span class="pinyin">yú</span>
+        <span class="pinyin">lóng</span>
+        <span class="pinyin">cǎn</span>
+      </div>
+      <div class="verse" id="verse11">
+        <span class="character" style="color: #0284c7;">风</span>
+        <span class="character" style="color: #c026d3;">雷</span>
+        <span class="character" style="color: #1a56db;">怒</span>
+        <span class="punctuation">，</span>
+        <span class="character" style="color: #d92626;">鱼</span>
+        <span class="character" style="color: #16a34a;">龙</span>
+        <span class="character" style="color: #d97706;">惨</span>
+        <span class="punctuation">。</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse11')">朗读本句</button>
+        <button onclick="toggleTranslation('verse11')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse11-translation">
+        <p><strong>English:</strong> Wind and thunder rage, fish and dragon suffer</p>
+        <p><strong>Deutsch:</strong> Wind und Donner toben, Fisch und Drache leiden</p>
+        <p><strong>Français:</strong> Le vent et le tonnerre se déchaînent, le poisson et le dragon souffrent</p>
+        <p><strong>日本語:</strong> 風雷が怒り、魚龍が惨め</p>
+        <p><strong>한국어:</strong> 바람과 천둥이 노하고 물고기와 용이 비참하다</p>
+        <p><strong>Tiếng Việt:</strong> Gió sấm giận dữ, cá rồng thảm thiết</p>
+      </div>
+    </div>
+    
+    <!-- 第十二句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">xiá</span>
+        <span class="pinyin">shù</span>
+        <span class="pinyin">cāng</span>
+        <span class="pinyin">jiāng</span>
+        <span class="pinyin">duì</span>
+        <span class="pinyin">qǐ</span>
+      </div>
+      <div class="verse" id="verse12">
+        <span class="character" style="color: #9333ea;">峡</span>
+        <span class="character" style="color: #059669;">束</span>
+        <span class="character" style="color: #0284c7;">沧</span>
+        <span class="character" style="color: #c026d3;">江</span>
+        <span class="character" style="color: #1a56db;">对</span>
+        <span class="character" style="color: #d92626;">起</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse12')">朗读本句</button>
+        <button onclick="toggleTranslation('verse12')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse12-translation">
+        <p><strong>English:</strong> The gorge confines the river, facing each other</p>
+        <p><strong>Deutsch:</strong> Die Schlucht begrenzt den Fluss, einander gegenüber</p>
+        <p><strong>Français:</strong> La gorge confine la rivière, se faisant face</p>
+        <p><strong>日本語:</strong> 峡谷が川を束ね、向かい合う</p>
+        <p><strong>한국어:</strong> 협곡이 강을 억제하고 마주하다</p>
+        <p><strong>Tiếng Việt:</strong> Hẻm núi bó sông, đối diện nhau</p>
+      </div>
+    </div>
+    
+    <!-- 第十三句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">guò</span>
+        <span class="pinyin">wēi</span>
+        <span class="pinyin">lóu</span>
+      </div>
+      <div class="verse" id="verse13">
+        <span class="character" style="color: #16a34a;">过</span>
+        <span class="character" style="color: #d97706;">危</span>
+        <span class="character" style="color: #9333ea;">楼</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse13')">朗读本句</button>
+        <button onclick="toggleTranslation('verse13')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse13-translation">
+        <p><strong>English:</strong> Passing the precarious tower</p>
+        <p><strong>Deutsch:</strong> Vorbeigehen am gefährlichen Turm</p>
+        <p><strong>Français:</strong> Passer la tour précaire</p>
+        <p><strong>日本語:</strong> 危険な楼を通り過ぎる</p>
+        <p><strong>한국어:</strong> 위태로운 누각을 지나다</p>
+        <p><strong>Tiếng Việt:</strong> Qua lầu hiểm trở</p>
+      </div>
+    </div>
+    
+    <!-- 第十四句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">yù</span>
+        <span class="pinyin">fēi</span>
+        <span class="pinyin">huán</span>
+        <span class="pinyin">liǎn</span>
+      </div>
+      <div class="verse" id="verse14">
+        <span class="character" style="color: #059669;">欲</span>
+        <span class="character" style="color: #0284c7;">飞</span>
+        <span class="character" style="color: #c026d3;">还</span>
+        <span class="character" style="color: #1a56db;">敛</span>
+        <span class="punctuation">。</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse14')">朗读本句</button>
+        <button onclick="toggleTranslation('verse14')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse14-translation">
+        <p><strong>English:</strong> About to fly but still restrained</p>
+        <p><strong>Deutsch:</strong> Wollte fliegen, aber noch zurückgehalten</p>
+        <p><strong>Français:</strong> Prêt à voler mais encore retenu</p>
+        <p><strong>日本語:</strong> 飛ぼうとしてまだ控える</p>
+        <p><strong>한국어:</strong> 날려고 하지만 아직 억제된다</p>
+        <p><strong>Tiếng Việt:</strong> Muốn bay nhưng còn thu liễm</p>
+      </div>
+    </div>
+    
+    <!-- 第十五句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">yuán</span>
+        <span class="pinyin">lóng</span>
+        <span class="pinyin">lǎo</span>
+        <span class="pinyin">yǐ</span>
+      </div>
+      <div class="verse" id="verse15">
+        <span class="character" style="color: #d92626;">元</span>
+        <span class="character" style="color: #16a34a;">龙</span>
+        <span class="character" style="color: #d97706;">老</span>
+        <span class="character" style="color: #9333ea;">矣</span>
+        <span class="punctuation">！</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse15')">朗读本句</button>
+        <button onclick="toggleTranslation('verse15')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse15-translation">
+        <p><strong>English:</strong> Yuan Long is old now!</p>
+        <p><strong>Deutsch:</strong> Yuan Long ist jetzt alt!</p>
+        <p><strong>Français:</strong> Yuan Long est vieux maintenant !</p>
+        <p><strong>日本語:</strong> 元龍はもう老いた！</p>
+        <p><strong>한국어:</strong> 원룡은 이제 늙었다!</p>
+        <p><strong>Tiếng Việt:</strong> Nguyên Long đã già rồi!</p>
+      </div>
+    </div>
+    
+    <!-- 第十六句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">bù</span>
+        <span class="pinyin">fáng</span>
+        <span class="pinyin">gāo</span>
+        <span class="pinyin">wò</span>
+      </div>
+      <div class="verse" id="verse16">
+        <span class="character" style="color: #059669;">不</span>
+        <span class="character" style="color: #0284c7;">妨</span>
+        <span class="character" style="color: #c026d3;">高</span>
+        <span class="character" style="color: #1a56db;">卧</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse16')">朗读本句</button>
+        <button onclick="toggleTranslation('verse16')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse16-translation">
+        <p><strong>English:</strong> Might as well lie high</p>
+        <p><strong>Deutsch:</strong> Könnte genauso gut hoch liegen</p>
+        <p><strong>Français:</strong> Autant se coucher haut</p>
+        <p><strong>日本語:</strong> 高いところに臥すのもよい</p>
+        <p><strong>한국어:</strong> 높이 누워도 무방하다</p>
+        <p><strong>Tiếng Việt:</strong> Không ngại nằm cao</p>
+      </div>
+    </div>
+    
+    <!-- 第十七句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">bīng</span>
+        <span class="pinyin">hú</span>
+        <span class="pinyin">liáng</span>
+        <span class="pinyin">diàn</span>
+      </div>
+      <div class="verse" id="verse17">
+        <span class="character" style="color: #d92626;">冰</span>
+        <span class="character" style="color: #16a34a;">壶</span>
+        <span class="character" style="color: #d97706;">凉</span>
+        <span class="character" style="color: #9333ea;">簟</span>
+        <span class="punctuation">。</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse17')">朗读本句</button>
+        <button onclick="toggleTranslation('verse17')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse17-translation">
+        <p><strong>English:</strong> Ice pot and cool mat</p>
+        <p><strong>Deutsch:</strong> Eistopf und kühle Matte</p>
+        <p><strong>Français:</strong> Pot de glace et natte fraîche</p>
+        <p><strong>日本語:</strong> 氷の壺と涼しい敷物</p>
+        <p><strong>한국어:</strong> 얼음 항아리와 시원한 자리</p>
+        <p><strong>Tiếng Việt:</strong> Bình băng chiếu mát</p>
+      </div>
+    </div>
+    
+    <!-- 第十八句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">qiān</span>
+        <span class="pinyin">gǔ</span>
+        <span class="pinyin">xīng</span>
+        <span class="pinyin">wáng</span>
+      </div>
+      <div class="verse" id="verse18">
+        <span class="character" style="color: #059669;">千</span>
+        <span class="character" style="color: #0284c7;">古</span>
+        <span class="character" style="color: #c026d3;">兴</span>
+        <span class="character" style="color: #1a56db;">亡</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse18')">朗读本句</button>
+        <button onclick="toggleTranslation('verse18')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse18-translation">
+        <p><strong>English:</strong> The rise and fall of a thousand years</p>
+        <p><strong>Deutsch:</strong> Aufstieg und Fall von tausend Jahren</p>
+        <p><strong>Français:</strong> L'ascension et la chute de mille ans</p>
+        <p><strong>日本語:</strong> 千古の興亡</p>
+        <p><strong>한국어:</strong> 천고의 흥망</p>
+        <p><strong>Tiếng Việt:</strong> Hưng vong ngàn xưa</p>
+      </div>
+    </div>
+    
+    <!-- 第十九句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">bǎi</span>
+        <span class="pinyin">nián</span>
+        <span class="pinyin">bēi</span>
+        <span class="pinyin">xiào</span>
+      </div>
+      <div class="verse" id="verse19">
+        <span class="character" style="color: #d92626;">百</span>
+        <span class="character" style="color: #16a34a;">年</span>
+        <span class="character" style="color: #d97706;">悲</span>
+        <span class="character" style="color: #9333ea;">笑</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse19')">朗读本句</button>
+        <button onclick="toggleTranslation('verse19')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse19-translation">
+        <p><strong>English:</strong> A hundred years of sorrow and laughter</p>
+        <p><strong>Deutsch:</strong> Hundert Jahre Trauer und Lachen</p>
+        <p><strong>Français:</strong> Cent ans de chagrin et de rire</p>
+        <p><strong>日本語:</strong> 百年の悲しみと笑い</p>
+        <p><strong>한국어:</strong> 백년의 슬픔과 웃음</p>
+        <p><strong>Tiếng Việt:</strong> Trăm năm buồn cười</p>
+      </div>
+    </div>
+    
+    <!-- 第二十句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">yī</span>
+        <span class="pinyin">shí</span>
+        <span class="pinyin">dēng</span>
+        <span class="pinyin">lǎn</span>
+      </div>
+      <div class="verse" id="verse20">
+        <span class="character" style="color: #059669;">一</span>
+        <span class="character" style="color: #0284c7;">时</span>
+        <span class="character" style="color: #c026d3;">登</span>
+        <span class="character" style="color: #1a56db;">览</span>
+        <span class="punctuation">。</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse20')">朗读本句</button>
+        <button onclick="toggleTranslation('verse20')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse20-translation">
+        <p><strong>English:</strong> A moment to ascend and view</p>
+        <p><strong>Deutsch:</strong> Ein Moment zum Aufsteigen und Betrachten</p>
+        <p><strong>Français:</strong> Un moment pour monter et regarder</p>
+        <p><strong>日本語:</strong> 一時に登って覧る</p>
+        <p><strong>한국어:</strong> 한때 올라가 살피다</p>
+        <p><strong>Tiếng Việt:</strong> Một lúc lên xem</p>
+      </div>
+    </div>
+    
+    <!-- 第二十一句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">wèn</span>
+        <span class="pinyin">hé</span>
+        <span class="pinyin">rén</span>
+        <span class="pinyin">yòu</span>
+        <span class="pinyin">xiè</span>
+      </div>
+      <div class="verse" id="verse21">
+        <span class="character" style="color: #d92626;">问</span>
+        <span class="character" style="color: #16a34a;">何</span>
+        <span class="character" style="color: #d97706;">人</span>
+        <span class="character" style="color: #9333ea;">又</span>
+        <span class="character" style="color: #059669;">卸</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse21')">朗读本句</button>
+        <button onclick="toggleTranslation('verse21')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse21-translation">
+        <p><strong>English:</strong> Ask who again unloads</p>
+        <p><strong>Deutsch:</strong> Frage, wer wieder entlädt</p>
+        <p><strong>Français:</strong> Demander qui encore décharge</p>
+        <p><strong>日本語:</strong> 誰がまた降ろすのか尋ねる</p>
+        <p><strong>한국어:</strong> 누가 또 내리는지 묻다</p>
+        <p><strong>Tiếng Việt:</strong> Hỏi người nào lại cởi</p>
+      </div>
+    </div>
+    
+    <!-- 第二十二句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">piàn</span>
+        <span class="pinyin">fān</span>
+        <span class="pinyin">shā</span>
+        <span class="pinyin">àn</span>
+      </div>
+      <div class="verse" id="verse22">
+        <span class="character" style="color: #0284c7;">片</span>
+        <span class="character" style="color: #c026d3;">帆</span>
+        <span class="character" style="color: #1a56db;">沙</span>
+        <span class="character" style="color: #d92626;">岸</span>
+        <span class="punctuation">，</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse22')">朗读本句</button>
+        <button onclick="toggleTranslation('verse22')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse22-translation">
+        <p><strong>English:</strong> A sail on the sandy shore</p>
+        <p><strong>Deutsch:</strong> Ein Segel am sandigen Ufer</p>
+        <p><strong>Français:</strong> Une voile sur le rivage sablonneux</p>
+        <p><strong>日本語:</strong> 砂岸の一片の帆</p>
+        <p><strong>한국어:</strong> 모래 언덕의 한 조각 돛</p>
+        <p><strong>Tiếng Việt:</strong> Cánh buồm bờ cát</p>
+      </div>
+    </div>
+    
+    <!-- 第二十三句 -->
+    <div class="verse-wrapper">
+      <div class="pinyin-row">
+        <span class="pinyin">xì</span>
+        <span class="pinyin">xié</span>
+        <span class="pinyin">yáng</span>
+        <span class="pinyin">lǎn</span>
+      </div>
+      <div class="verse" id="verse23">
+        <span class="character" style="color: #16a34a;">系</span>
+        <span class="character" style="color: #d97706;">斜</span>
+        <span class="character" style="color: #9333ea;">阳</span>
+        <span class="character" style="color: #059669;">缆</span>
+        <span class="punctuation">。</span>
+      </div>
+      <div class="verse-controls">
+        <button onclick="readVerse('verse23')">朗读本句</button>
+        <button onclick="toggleTranslation('verse23')">翻译</button>
+      </div>
+      <div class="translation-panel" id="verse23-translation">
+        <p><strong>English:</strong> Tying the setting sun's cable</p>
+        <p><strong>Deutsch:</strong> Das Kabel der untergehenden Sonne binden</p>
+        <p><strong>Français:</strong> Attacher le câble du soleil couchant</p>
+        <p><strong>日本語:</strong> 斜陽の纜を繋ぐ</p>
+        <p><strong>한국어:</strong> 석양의 밧줄을 매다</p>
+        <p><strong>Tiếng Việt:</strong> Buộc dây mặt trời xế</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 语音合成
+    let chineseVoice;
+    let isSpeaking = false;
+    
+    function initSpeech() {
+      return new Promise(resolve => {
+        if (!'speechSynthesis' in window) {
+          console.warn("浏览器不支持语音合成");
+          resolve(null);
+          return;
+        }
+        
+        function checkVoices() {
+          const voices = speechSynthesis.getVoices();
+          if (voices.length === 0) {
+            setTimeout(checkVoices, 100);
+            return;
+          }
+          
+          // 精确匹配中文语音
+          chineseVoice = voices.find(voice => 
+            (voice.lang === 'zh-CN' || voice.lang === 'cmn-CN') &&
+            (voice.name.includes('Chinese') || voice.name.includes('中文'))
+          );
+          
+          if (!chineseVoice) {
+            chineseVoice = voices.find(voice => 
+              voice.lang.includes('zh') || voice.lang.includes('cmn')
+            );
+          }
+          
+          if (!chineseVoice) {
+            console.warn("未找到中文语音，将使用默认语音");
+          } else {
+            console.log("使用语音:", chineseVoice.name, chineseVoice.lang);
+          }
+          resolve(chineseVoice);
+        }
+        
+        // 某些浏览器需要触发一次getVoices才能加载
+        speechSynthesis.getVoices();
+        checkVoices();
+      });
+    }
+
+    // 初始化字符元素
+    const characters = document.querySelectorAll('.character');
+    const animations = [
+      'bounce', 'rainbow', 'jelly', 'spin', 
+      'magnify', 'shake', 'float', 'dance'
+    ];
+    
+    // 点击单个字符
+    characters.forEach((char, index) => {
+      char.addEventListener('click', function() {
+        if (isSpeaking) return;
+        
+        // 激活字符动画
+        this.classList.add('active');
+        const animClass = animations[index % animations.length];
+        this.classList.add(animClass);
+        
+        // 创建气泡效果
+        createBubble(this);
+        
+        // 朗读字符3次（减少次数更适合儿童）
+        const msg = new SpeechSynthesisUtterance();
+        msg.text = this.textContent.trim();
+        msg.lang = 'zh-CN';
+        msg.rate = 0.6; // 更慢的语速
+        msg.pitch = 1.2; // 更高的音调
+        
+        if (chineseVoice) {
+          msg.voice = chineseVoice;
+        }
+        
+        let count = 0;
+        const speak = () => {
+          if (count >= 3) {
+            setTimeout(() => {
+              this.classList.remove(animClass);
+              this.classList.remove('active');
+            }, 500);
+            return;
+          }
+          
+          window.speechSynthesis.cancel();
+          window.speechSynthesis.speak(msg);
+          count++;
+          setTimeout(speak, 800);
+        };
+        
+        speak();
+      });
+    });
+    
+    // 创建气泡效果
+    function createBubble(element) {
+      const rect = element.getBoundingClientRect();
+      const bubble = document.createElement('div');
+      bubble.style.position = 'fixed';
+      bubble.style.left = `${rect.left + rect.width/2}px`;
+      bubble.style.top = `${rect.top + rect.height/2}px`;
+      bubble.style.width = '20px';
+      bubble.style.height = '20px';
+      bubble.style.borderRadius = '50%';
+      bubble.style.background = getRandomColor();
+      bubble.style.transform = 'scale(0)';
+      bubble.style.animation = 'bubble-pop 0.8s forwards';
+      bubble.style.pointerEvents = 'none';
+      bubble.style.zIndex = '1000';
+      document.body.appendChild(bubble);
+      
+      setTimeout(() => {
+        document.body.removeChild(bubble);
+      }, 800);
+    }
+    
+    // 随机颜色
+    function getRandomColor() {
+      const colors = ['#ff4081', '#64b5f6', '#4caf50', '#ff9800', '#9c27b0'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    // 朗读标题和作者（带停顿）
+    function readTitle() {
+      if (isSpeaking) return;
+      isSpeaking = true;
+      
+      const title = document.getElementById('poem-title').textContent;
+      const author = document.getElementById('poem-author').textContent;
+      
+      // 分割标题和作者，中间加停顿
+      const titleParts = title.split('·');
+      const fullText = [...titleParts, author];
+      
+      let currentIndex = 0;
+      
+      function speakNext() {
+        if (currentIndex >= fullText.length) {
+          isSpeaking = false;
+          return;
+        }
+        
+        const text = fullText[currentIndex].trim();
+        if (!text) {
+          currentIndex++;
+          setTimeout(speakNext, 500);
+          return;
+        }
+        
+        const msg = new SpeechSynthesisUtterance();
+        msg.text = text;
+        msg.lang = 'zh-CN';
+        msg.rate = 0.6;
+        msg.pitch = 1.1;
+        
+        if (chineseVoice) {
+          msg.voice = chineseVoice;
+        }
+        
+        // 高亮当前朗读的部分
+        if (currentIndex < titleParts.length) {
+          document.getElementById('poem-title').style.color = '#ff5722';
+        } else {
+          document.getElementById('poem-author').style.color = '#9c27b0';
+        }
+        
+        msg.onend = function() {
+          // 恢复颜色
+          if (currentIndex < titleParts.length) {
+            document.getElementById('poem-title').style.color = '';
+          } else {
+            document.getElementById('poem-author').style.color = '';
+          }
+          
+          currentIndex++;
+          // 标点后停顿500ms
+          setTimeout(speakNext, 500);
+        };
+        
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(msg);
+      }
+      
+      speakNext();
+    }
+    
+    // 朗读完整诗句（带标点停顿）
+    async function readVerse(verseId) {
+      if (isSpeaking) return;
+      isSpeaking = true;
+      
+      const verse = document.getElementById(verseId);
+      const wrapper = verse.parentElement;
+      const text = verse.textContent;
+      
+      // 高亮诗句
+      verse.classList.add('highlight-verse');
+      
+      // 分割句子（按标点）
+      const segments = text.split(/([，。！])/).filter(s => s.trim());
+      
+      let currentIndex = 0;
+      
+      function speakNextSegment() {
+        if (currentIndex >= segments.length) {
+          // 全部朗读完成后显示拼音
+          wrapper.classList.add('show-pinyin');
+          
+          // 显示拼音动画
+          const pinyins = wrapper.querySelectorAll('.pinyin');
+          pinyins.forEach((pinyin, i) => {
+            setTimeout(() => {
+              pinyin.style.opacity = '1';
+              pinyin.style.animation = 'pinyin-pop 0.5s forwards';
+              createBubble(pinyin);
+            }, i * 200);
+          });
+          
+          // 3秒后恢复
+          setTimeout(() => {
+            verse.classList.remove('highlight-verse');
+            wrapper.classList.remove('show-pinyin');
+            pinyins.forEach(p => {
+              p.style.opacity = '0';
+              p.style.animation = '';
+            });
+            isSpeaking = false;
+          }, 3000);
+          return;
+        }
+        
+        const segment = segments[currentIndex].trim();
+        if (!segment) {
+          currentIndex++;
+          setTimeout(speakNextSegment, 300);
+          return;
+        }
+        
+        const msg = new SpeechSynthesisUtterance();
+        msg.text = segment;
+        msg.lang = 'zh-CN';
+        msg.rate = 0.6;
+        msg.pitch = 1.1;
+        
+        if (chineseVoice) {
+          msg.voice = chineseVoice;
+        }
+        
+        // 高亮当前朗读的字符
+        const chars = verse.querySelectorAll('.character');
+        chars.forEach(c => c.classList.remove('active'));
+        
+        // 计算当前段落的字符范围
+        let start = 0;
+        for (let i = 0; i < currentIndex; i++) {
+          start += segments[i].length;
+        }
+        
+        const end = start + segment.length;
+        for (let i = start; i < end && i < chars.length; i++) {
+          setTimeout(() => {
+            chars[i].classList.add('active');
+            createBubble(chars[i]);
+          }, i * 100);
+        }
+        
+        msg.onend = function() {
+          // 标点后停顿300ms
+          currentIndex++;
+          setTimeout(speakNextSegment, 300);
+        };
+        
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(msg);
+      }
+      
+      speakNextSegment();
+    }
+    
+    // 切换翻译显示
+    function toggleTranslation(verseId) {
+      const panel = document.getElementById(verseId + '-translation');
+      panel.classList.toggle('active');
+      createBubble(panel);
+    }
+    
+    // 庆祝效果
+    function celebrate() {
+      const colors = ['#ff4081', '#64b5f6', '#4caf50', '#ff9800', '#9c27b0'];
+      for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.style.position = 'fixed';
+          confetti.style.left = `${Math.random() * 100}%`;
+          confetti.style.top = '-20px';
+          confetti.style.width = '15px';
+          confetti.style.height = '15px';
+          confetti.style.borderRadius = '50%';
+          confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.animation = `fall ${Math.random() * 2 + 1}s linear forwards`;
+          confetti.style.zIndex = '1000';
+          document.body.appendChild(confetti);
+          
+          setTimeout(() => {
+            document.body.removeChild(confetti);
+          }, 3000);
+        }, i * 100);
+      }
+      
+      // 播放庆祝音效（如果有）
+      if (typeof Audio !== 'undefined') {
+        const audio = new Audio();
+        audio.src = 'https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3';
+        audio.play().catch(e => console.log('无法播放音效:', e));
+      }
+    }
+    
+    // 添加下落动画
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fall {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initSpeech();
+      
+      // 精确对齐拼音和汉字
+      document.querySelectorAll('.verse-wrapper').forEach(wrapper => {
+        const verse = wrapper.querySelector('.verse');
+        const pinyinRow = wrapper.querySelector('.pinyin-row');
+        const chars = verse.querySelectorAll('.character');
+        const pinyins = pinyinRow.querySelectorAll('.pinyin');
+        
+        chars.forEach((char, i) => {
+          const charRect = char.getBoundingClientRect();
+          const wrapperRect = wrapper.getBoundingClientRect();
+          const left = charRect.left + charRect.width/2 - wrapperRect.left;
+          pinyins[i].style.left = `${left}px`;
+        });
+      });
+      
+      // 添加点击效果
+      document.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', function() {
+          createBubble(this);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
