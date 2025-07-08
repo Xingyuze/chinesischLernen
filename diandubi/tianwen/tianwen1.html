@@ -437,7 +437,7 @@
                 english: "Where do the sun and moon belong, how are the stars arrayed?",
                 german: "Wohin gehören Sonne und Mond, wie sind die Sterne angeordnet?",
                 french: "Où appartiennent le soleil et la lune, comment les étoiles sont-elles disposées ?",
-                italian: "Dove appartengono il sole e la luna, come sono disposte le stelle?",
+                italian: "Dove appartengono il sole e la lune, come sono disposte le stelle?",
                 spanish: "¿Dónde pertenecen el sol y la luna, cómo están dispuestas las estrellas?",
                 arabic: "أين ينتمي الشمس والقمر، كيف يتم ترتيب النجوم؟",
                 japanese: "日月安んぞ属し、列星安んぞ陳ぶ？"
@@ -464,7 +464,7 @@
                 english: "What virtue does the moon have, that dying it is reborn?",
                 german: "Welche Tugend hat der Mond, dass sterbend er wiedergeboren wird?",
                 french: "Quelle vertu la lune a-t-elle, qu'en mourant elle renaît ?",
-                italian: "Quale virtù ha la luna, che morendo rinasce?",
+                italian: "Quale virtù ha la lune, che morendo rinasce?",
                 spanish: "¿Qué virtud tiene la luna, que muriendo renace?",
                 arabic: "ما هي فضيلة القمر، التي عند موتها تولد من جديد؟",
                 japanese: "夜光何の徳、死すれば則ち又育つ？"
@@ -583,4 +583,43 @@
             // 翻译按钮
             const translateBtn = document.createElement('button');
             translateBtn.className = 'action-btn';
-            translate
+            translateBtn.textContent = '翻译';
+            translateBtn.addEventListener('click', function() {
+                const existingTranslation = lineDiv.nextElementSibling;
+                if (existingTranslation && existingTranslation.className === 'translations') {
+                    existingTranslation.style.display = existingTranslation.style.display === 'none' ? 'block' : 'none';
+                    return;
+                }
+                
+                const translationsDiv = document.createElement('div');
+                translationsDiv.className = 'translations';
+                
+                for (const [lang, text] of Object.entries(translations[line])) {
+                    const translationDiv = document.createElement('div');
+                    translationDiv.className = 'translation';
+                    
+                    const langSpan = document.createElement('span');
+                    langSpan.className = 'language';
+                    langSpan.textContent = lang + ':';
+                    
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = ' ' + text;
+                    
+                    translationDiv.appendChild(langSpan);
+                    translationDiv.appendChild(textSpan);
+                    translationsDiv.appendChild(translationDiv);
+                }
+                
+                lineDiv.parentNode.insertBefore(translationsDiv, lineDiv.nextSibling);
+                translationsDiv.style.display = 'block';
+            });
+            
+            actionsDiv.appendChild(readBtn);
+            actionsDiv.appendChild(translateBtn);
+            
+            poemContainer.appendChild(lineDiv);
+            poemContainer.appendChild(actionsDiv);
+        });
+    </script>
+</body>
+</html>
