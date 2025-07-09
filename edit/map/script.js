@@ -239,7 +239,7 @@ function refreshPreview() {
                             </span>
                         `;
       } else {
-        lineDiv.innerHTML += `<span>${char}</span>`;
+        lineDiv.innerHTML += `<span class = "trans">${char}</span>`;
       }
     });
 
@@ -260,11 +260,11 @@ function refreshPreview() {
       // 根据语言显示标签
       const langLabel =
         {
-          en: "English Translation: ",
-          zh: "中文翻译: ",
-          de: "Deutsche Übersetzung: ",
-          fr: "Traduction française: ",
-          es: "Traducción al español: ",
+          en: "English: ",
+          zh: "中文: ",
+          de: "Deutsche: ",
+          fr: "française: ",
+          es: "español: ",
         }[lang] || "Translation: ";
 
       translationDiv.innerHTML = `<strong>${langLabel}</strong>${

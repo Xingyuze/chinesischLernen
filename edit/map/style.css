@@ -54,11 +54,12 @@ header p {
 }
 
 .content-wrapper {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 25px;
     margin-bottom: 30px;
 }
+
 
 .panel {
     background: white;
@@ -330,6 +331,7 @@ header p {
     cursor: pointer;
     padding: 2px 4px;
     border-radius: 4px;
+    font-size: 2em;
 }
 
 .preview-char:hover {
@@ -340,6 +342,7 @@ header p {
     position: absolute;
     top: -40px;
     left: 50%;
+    font-size: 2em;
     transform: translateX(-50%);
     background: #2c3e50;
     color: white;
@@ -374,7 +377,7 @@ header p {
 
 .preview-translation {
     color: #3498db;
-    font-size: 0.95rem;
+    font-size: 2rem;
     margin-top: 5px;
     padding-left: 30px;
     font-style: italic;
