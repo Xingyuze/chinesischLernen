@@ -164,7 +164,7 @@
     let score = 0;
     let missedChars = {};
 
-    const fruitEmojis = ['🍎', '🍐', '🍉', '🍇', '🍊', '🍓'];
+    const fruitEmojis = ['🍎', '🍐', '🍉', '🍇', '🍊', '🍓', '🥳', '🌸', '🏵️', '🌹','🌺','🌻','🌼','🌵','🌴','🌳','🌲','🌷','🪴','🌾','🍁','☘️','🍂','🍃','🌶️','🍄‍🟫','🐵','🐒','🦍','🐶','🐕','🐩','🐅','🐯','🐈','🐱','🦊','🐺','🐆','🐴','🫎','🫏','🐎','🦌','🐖','🐷','🐄','🐃','🐂','🐮','🐗','🐽','🐑','🐐','🐪','😍'];
 
     function useCustomChars() {
       const input = document.getElementById('charInput').value.trim();
@@ -344,7 +344,7 @@
       fruit.style.left = `${x}px`;
       fruit.style.top = `${y}px`;
       document.getElementById('gameContainer').appendChild(fruit);
-      setTimeout(() => fruit.remove(), 600);
+      setTimeout(() => fruit.remove(), 1000);
     }
 
     setInterval(() => {
