@@ -65,7 +65,7 @@
 
     #appleReward {
       position: absolute;
-      font-size: 4rem;
+      font-size: 5rem;
       animation: popUp 0.6s ease-out forwards;
     }
 
@@ -93,9 +93,27 @@
     }
 
     #charInput {
-      width: 160px;
-      font-size: 16px;
-    }
+  width: 200px;
+  min-height: 32px;
+  max-height: 180px;
+  font-size: 16px;
+  resize: none;
+  overflow: hidden;
+  padding: 8px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 6px;
+  background-color: #D0D0D7;
+  color: hsl(270, 100%, 10%);
+  line-height: 1.4;
+  font-family: "微软雅黑", sans-serif;
+  transition: height 0.2s ease;
+}
+#charInput:focus {
+  outline: none;
+  box-shadow: 0 0 6px #0ff;
+}
+
 
     button {
       margin-left: 4px;
@@ -109,9 +127,10 @@
   <div id="gameContainer">
     <div id="scoreBoard">分数：0</div>
     <div id="controls">
-      <input id="charInput" placeholder="输入汉字（如：战利胜）" />
+        <textarea id="charInput" placeholder="输入汉字（如：战利胜）" oninput="autoResize(this)"></textarea>
+
       <button onclick="useCustomChars()">使用</button>
-      <button onclick="useDefaultChars()">默认字库</button>
+      <button onclick="useDefaultChars()">字库</button>
       <button onclick="reset()">分数清零</button>
     </div>
     <div id="basket">⬇ 生字纸篓 ⬇</div>
@@ -121,15 +140,20 @@
     const defaultChars = [];
     let activeChars = [...defaultChars];
     let score = 0;
+    let missedChars = {}; // speichert: { 好: 4, 你: 2, ... }
+
 
     function useCustomChars() {
-      const input = document.getElementById('charInput').value.trim();
-      if (input) {
-        activeChars = [...new Set(input.split(''))];
-        score = 0;
-        updateScore();
-      }
-    }
+  const input = document.getElementById('charInput').value.trim();
+  if (input) {
+    activeChars = [...new Set(input.split(''))];
+    score = 0;
+    missedChars = {}; // ← hinzufügen
+    updateScore();
+    renderMissedChars(); // ← hinzufügen
+  }
+}
+
     function renderActiveCharList() {
   const existing = document.getElementById("charListDisplay");
   if (existing) existing.remove(); // alte Liste entfernen
@@ -141,15 +165,31 @@
   container.style.right = "10px";
   container.style.background = "#222";
   container.style.color = "#0ff";
-  container.style.padding = "10px 15px";
+  container.style.padding = "10px 15px 15px 15px";
   container.style.borderRadius = "8px";
   container.style.fontSize = "20px";
   container.style.zIndex = 1000;
+  container.style.minWidth = "200px";
+  container.style.boxShadow = "0 0 10px #0ff";
+
+  // ✖ Close-Button
+  const closeBtn = document.createElement("div");
+  closeBtn.textContent = "✖";
+  closeBtn.style.position = "absolute";
+  closeBtn.style.top = "6px";
+  closeBtn.style.right = "10px";
+  closeBtn.style.cursor = "pointer";
+  closeBtn.style.color = "#0ff";
+  closeBtn.style.fontSize = "16px";
+  closeBtn.title = "关闭列表";
+  closeBtn.onclick = () => container.remove();
+  container.appendChild(closeBtn);
 
   const title = document.createElement("div");
   title.textContent = "当前汉字：";
   title.style.marginBottom = "6px";
   title.style.fontWeight = "bold";
+  title.style.paddingRight = "24px"; // Platz für ✖
   container.appendChild(title);
 
   if (activeChars.length === 0) {
@@ -157,21 +197,35 @@
     empty.textContent = "(无)";
     container.appendChild(empty);
   } else {
+    const grid = document.createElement("div");
+    grid.style.display = "flex";
+    grid.style.flexWrap = "wrap";
+    grid.style.gap = "8px";
+
     activeChars.forEach(char => {
       const span = document.createElement("span");
       span.textContent = char;
-      span.style.marginRight = "10px";
-      container.appendChild(span);
+      span.style.padding = "4px 6px";
+      span.style.background = "#333";
+      span.style.borderRadius = "4px";
+      grid.appendChild(span);
     });
+
+    container.appendChild(grid);
   }
 
   document.getElementById("gameContainer").appendChild(container);
 }
 
 
+
 function reset() {
-    score = 0;
+  score = 0;
+  missedChars = {};
+  updateScore();
+  renderMissedChars();
 }
+
 
 function useDefaultChars() {
 
@@ -207,11 +261,56 @@ function useDefaultChars() {
       // 删除未点击的字，并放入纸篓提示
       setTimeout(() => {
         if (charElem.parentElement) {
-          charElem.remove();
-          // 可加入生字列表功能
+            if (charElem.parentElement) {
+                charElem.remove();
+
+                // Zeichen zur "Papierkorb"-Liste hinzufügen
+                if (char in missedChars) {
+                    missedChars[char]++;
+                } else {
+                    missedChars[char] = 1;
+                }
+
+                renderMissedChars(); // aktualisiere Anzeige
+            }
+
         }
       }, fallDuration * 1000);
     }
+    function renderMissedChars() {
+  const basket = document.getElementById("basket");
+
+  // Leeren
+//   basket.innerHTML = "⬇ 生字纸篓 ⬇";
+
+  const list = document.createElement("div");
+  list.style.marginTop = "6px";
+  list.style.fontSize = "16px";
+  list.style.display = "flex";
+  list.style.flexWrap = "wrap";
+  list.style.gap = "12px";
+  list.style.border = "solid"
+  list.style.justifyContent = "center";
+
+  for (const char in missedChars) {
+    const count = missedChars[char];
+    const entry = document.createElement("div");
+    entry.textContent = `${count}× ${char}`;
+    entry.style.background = "#1a1a1a";
+    entry.style.padding = "4px 8px";
+    entry.style.borderRadius = "6px";
+    entry.style.color = "#fff";
+    list.appendChild(entry);
+  }
+
+  basket.appendChild(list);
+}
+
+
+    function autoResize(textarea) {
+  textarea.style.height = "auto"; // Höhe zurücksetzen
+  textarea.style.height = (textarea.scrollHeight) + "px"; // neue Höhe setzen
+}
 
 
     function showApple(x, y) {
