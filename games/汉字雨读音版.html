@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>汉字雨游戏</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+      font-family: "微软雅黑", sans-serif;
+      color: #fff;
+    }
+
+    #gameContainer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+      background-size: auto;
+    }
+
+    .fallingChar {
+      position: absolute;
+      font-size: 20px;
+      color: #00fff7;
+      user-select: none;
+      animation-name: fallGrow;
+      animation-timing-function: linear;
+      cursor: pointer;
+      text-shadow: 0 0 8px #00fff7;
+    }
+
+    @keyframes fallGrow {
+      from {
+        top: -50px;
+        font-size: 40px;
+        opacity: 1;
+      }
+      to {
+        top: calc(100vh - 80px);
+        font-size: 60px;
+        opacity: 0.6;
+      }
+    }
+
+    #scoreBoard {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 6px 12px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #0ff;
+    }
+
+    #basket {
+      position: absolute;
+      bottom: 0;
+      height: auto;
+      min-height: 60px;
+      width: 100%;
+      background-color: rgba(44, 62, 80, 0.85);
+      text-align: center;
+      line-height: 60px;
+      font-size: 18px;
+      color: #ccc;
+      padding: 10px 0;
+    }
+
+    #appleReward {
+      position: absolute;
+      font-size: 5rem;
+      animation: popUp 0.6s ease-out forwards;
+      pointer-events: none;
+    }
+
+    @keyframes popUp {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 0;
+        top: -30px;
+      }
+    }
+
+    #controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #0ff;
+    }
+    @media (max-width: 768px){
+      #controls {
+        display: grid;
+        grid-template-columns: 1, 1fr;
+        padding: 6px;
+      } 
+    }
+
+    #charInput {
+      width: 200px;
+      min-height: 32px;
+      max-height: 180px;
+      font-size: 16px;
+      resize: none;
+      overflow: hidden;
+      padding: 8px;
+      box-sizing: border-box;
+      border: none;
+      border-radius: 6px;
+      background-color: #e0f7fa;
+      color: #000;
+      line-height: 1.4;
+      font-family: "微软雅黑", sans-serif;
+      transition: height 0.2s ease;
+    }
+    #charInput:focus {
+      outline: none;
+      box-shadow: 0 0 6px #0ff;
+    }
+
+    button {
+      margin-top: 6px;
+      margin-left: 4px;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: none;
+      background: #00bcd4;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #0097a7;
+    }
+
+    /* 新增的拼音显示样式 */
+    #pinyinDisplay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 80px;
+      color: #ffcc00;
+      text-shadow: 0 0 15px #ff9900;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <div id="scoreBoard">分数：0</div>
+    <div id="pinyinDisplay"></div>
+    <div id="controls">
+        <textarea id="charInput" placeholder="输入汉字（如：战利胜）" oninput="autoResize(this)"></textarea>
+        <br>
+        <button onclick="useCustomChars()">使用</button>
+        <button onclick="useDefaultChars()">字库</button>
+        <button onclick="reset()">分数清零</button>
+        <button onclick="resetToDefault()">清除字庫</button>
+    </div>
+    <div id="basket">⬇ 生字纸篓 ⬇</div>
+  </div>
+
+  <script>
+    const defaultChars = [];
+    let activeChars = [...defaultChars];
+    let score = 0;
+    let missedChars = {};
+
+    // 汉字拼音和词汇库
+    const charData = {
+      "爱": { pinyin: "ài", words: ["爱心", "爱情", "爱国"] },
+      "学": { pinyin: "xué", words: ["学习", "学生", "学校"] },
+      "好": { pinyin: "hǎo", words: ["好人", "好事", "好处"] },
+      "人": { pinyin: "rén", words: ["人民", "人生", "人类"] },
+      "大": { pinyin: "dà", words: ["大家", "大学", "大约"] },
+      "中": { pinyin: "zhōng", words: ["中国", "中心", "中间"] },
+      "国": { pinyin: "guó", words: ["国家", "国际", "国旗"] },
+      "生": { pinyin: "shēng", words: ["生活", "生日", "生命"] },
+      "日": { pinyin: "rì", words: ["日期", "日记", "日光"] },
+      "月": { pinyin: "yuè", words: ["月亮", "月光", "月份"] },
+      "水": { pinyin: "shuǐ", words: ["水果", "水平", "水泥"] },
+      "火": { pinyin: "huǒ", words: ["火车", "火箭", "火焰"] },
+      "山": { pinyin: "shān", words: ["山峰", "山地", "山脉"] },
+      "石": { pinyin: "shí", words: ["石头", "石油", "石膏"] },
+      "天": { pinyin: "tiān", words: ["天空", "天气", "天才"] },
+      "地": { pinyin: "dì", words: ["地球", "地面", "地址"] },
+      "风": { pinyin: "fēng", words: ["风景", "风格", "风险"] },
+      "雨": { pinyin: "yǔ", words: ["雨水", "雨伞", "雨季"] },
+      "花": { pinyin: "huā", words: ["花园", "花朵", "花费"] },
+      "树": { pinyin: "shù", words: ["树木", "树叶", "树枝"] },
+      "媚": { pinyin: "mèi", words: ["妩媚", "媚眼", "献媚"] },
+      "曳": { pinyin: "yè", words: ["摇曳", "曳步", "拖曳"] },
+      "鎏": { pinyin: "liú", words: ["鎏金", "鎏银", "鎏铜"] },
+      "怡": { pinyin: "yí", words: ["怡人", "怡然", "心旷神怡"] },
+      "廓": { pinyin: "kuò", words: ["轮廓", "廓清", "寥廓"] },
+      "沧": { pinyin: "cāng", words: ["沧海", "沧桑", "沧州"] },
+      "湘": { pinyin: "xiāng", words: ["湘江", "湘菜", "湖南湘"] },
+      "一": { pinyin: "yī", words: ["一起", "一定", "唯一"] },
+      "一": { pinyin: "yī", words: ["一起", "一定", "唯一"] },
+      "乙": { pinyin: "yǐ", words: ["乙等", "乙肝", "乙烯"] },
+      "二": { pinyin: "èr", words: ["第二", "二手", "二胡"] },
+      "十": { pinyin: "shí", words: ["十分", "十月", "十字"] },
+      "丁": { pinyin: "dīng", words: ["园丁", "丁香", "丁字"] },
+      "厂": { pinyin: "chǎng", words: ["工厂", "厂长", "厂房"] },
+      "七": { pinyin: "qī", words: ["七月", "七夕", "七律"] },
+      "卜": { pinyin: "bǔ", words: ["占卜", "卜卦", "萝卜"] },
+      "人": { pinyin: "rén", words: ["人民", "人生", "人类"] },
+      "入": { pinyin: "rù", words: ["入口", "加入", "收入"] },
+      "八": { pinyin: "bā", words: ["八月", "八卦", "八方"] },
+      "九": { pinyin: "jiǔ", words: ["九月", "九州", "九寨"] },
+      "几": { pinyin: "jī", words: ["几乎", "茶几", "几率"] },
+      "儿": { pinyin: "ér", words: ["儿子", "儿童", "儿女"] },
+      "了": { pinyin: "le", words: ["了解", "完了", "了结"] },
+      "力": { pinyin: "lì", words: ["力量", "努力", "力气"] },
+      "乃": { pinyin: "nǎi", words: ["乃是", "乃至", "乃尔"] },
+      "刀": { pinyin: "dāo", words: ["刀子", "剪刀", "刀具"] },
+      "又": { pinyin: "yòu", words: ["又要", "又是", "又名"] },
+      "三": { pinyin: "sān", words: ["三月", "三峡", "三思"] },
+      "于": { pinyin: "yú", words: ["于是", "关于", "由于"] },
+      "干": { pinyin: "gān", words: ["干净", "干杯", "干脆"] },
+      "亏": { pinyin: "kuī", words: ["亏本", "吃亏", "亏损"] },
+      "士": { pinyin: "shì", words: ["士兵", "博士", "护士"] },
+      "工": { pinyin: "gōng", words: ["工作", "工人", "工具"] },
+      "土": { pinyin: "tǔ", words: ["土地", "泥土", "土豆"] },
+      "才": { pinyin: "cái", words: ["才能", "人才", "才华"] },
+      "寸": { pinyin: "cùn", words: ["尺寸", "寸步", "寸心"] },
+      "下": { pinyin: "xià", words: ["下面", "下午", "下车"] },
+      "大": { pinyin: "dà", words: ["大家", "大学", "大约"] },
+      "丈": { pinyin: "zhàng", words: ["丈夫", "丈量", "方丈"] },
+      "与": { pinyin: "yǔ", words: ["与其", "参与", "赠与"] },
+      "万": { pinyin: "wàn", words: ["万一", "万里", "万年"] },
+      "上": { pinyin: "shàng", words: ["上面", "上班", "上学"] },
+      "小": { pinyin: "xiǎo", words: ["小孩", "小学", "小心"] },
+      "口": { pinyin: "kǒu", words: ["口号", "出口", "口味"] },
+      "巾": { pinyin: "jīn", words: ["毛巾", "纸巾", "围巾"] },
+      "山": { pinyin: "shān", words: ["山峰", "山地", "山脉"] },
+      "千": { pinyin: "qiān", words: ["千万", "千里", "千克"] },
+      "乞": { pinyin: "qǐ", words: ["乞丐", "乞讨", "乞求"] },
+      "川": { pinyin: "chuān", words: ["四川", "川菜", "河川"] },
+      "亿": { pinyin: "yì", words: ["亿万", "亿元", "亿兆"] },
+      "个": { pinyin: "gè", words: ["个人", "个别", "个性"] },
+      "勺": { pinyin: "sháo", words: ["勺子", "汤勺", "勺柄"] },
+      "久": { pinyin: "jiǔ", words: ["很久", "永久", "久远"] },
+      "凡": { pinyin: "fán", words: ["凡是", "平凡", "凡人"] },
+      "及": { pinyin: "jí", words: ["及时", "以及", "普及"] },
+      "夕": { pinyin: "xī", words: ["夕阳", "除夕", "前夕"] },
+      "丸": { pinyin: "wán", words: ["丸子", "药丸", "泥丸"] },
+      "么": { pinyin: "me", words: ["什么", "怎么", "多么"] },
+      "广": { pinyin: "guǎng", words: ["广告", "广场", "广东"] },
+      "亡": { pinyin: "wáng", words: ["死亡", "灭亡", "亡国"] },
+      "门": { pinyin: "mén", words: ["门口", "大门", "门票"] },
+      "义": { pinyin: "yì", words: ["意义", "义务", "正义"] },
+      "之": { pinyin: "zhī", words: ["之前", "之后", "总之"] },
+      "尸": { pinyin: "shī", words: ["尸体", "尸检", "尸骨"] },
+      "弓": { pinyin: "gōng", words: ["弓箭", "弓形", "弓弦"] },
+      "己": { pinyin: "jǐ", words: ["自己", "己方", "己任"] },
+      "已": { pinyin: "yǐ", words: ["已经", "早已", "不已"] },
+      "子": { pinyin: "zǐ", words: ["子女", "子弹", "棋子"] },
+      "卫": { pinyin: "wèi", words: ["卫生", "保卫", "卫星"] },
+      "也": { pinyin: "yě", words: ["也许", "也是", "也好"] },
+      "女": { pinyin: "nǚ", words: ["女孩", "女儿", "女士"] },
+      "飞": { pinyin: "fēi", words: ["飞机", "飞行", "飞快"] },
+      "刃": { pinyin: "rèn", words: ["刀刃", "利刃", "刃具"] },
+      "习": { pinyin: "xí", words: ["习惯", "学习", "练习"] },
+      "叉": { pinyin: "chā", words: ["叉子", "交叉", "叉车"] },
+      "马": { pinyin: "mǎ", words: ["马上", "马路", "马车"] },
+      "乡": { pinyin: "xiāng", words: ["乡村", "家乡", "乡亲"] },
+      "丰": { pinyin: "fēng", words: ["丰富", "丰收", "丰盛"] },
+      "王": { pinyin: "wáng", words: ["王子", "王国", "王牌"] },
+      "井": { pinyin: "jǐng", words: ["水井", "井盖", "矿井"] },
+      "开": { pinyin: "kāi", words: ["开始", "开心", "开车"] },
+      "夫": { pinyin: "fū", words: ["夫人", "丈夫", "农夫"] },
+      "天": { pinyin: "tiān", words: ["天空", "天气", "天才"] },
+      "无": { pinyin: "wú", words: ["无法", "无论", "无聊"] },
+      "元": { pinyin: "yuán", words: ["元旦", "元素", "元宵"] },
+      "专": { pinyin: "zhuān", words: ["专业", "专门", "专家"] },
+      "云": { pinyin: "yún", words: ["云南", "云彩", "云朵"] },
+      "扎": { pinyin: "zhā", words: ["扎实", "扎针", "驻扎"] },
+      "艺": { pinyin: "yì", words: ["艺术", "手艺", "艺人"] },
+      "木": { pinyin: "mù", words: ["木头", "树木", "木材"] },
+      "五": { pinyin: "wǔ", words: ["五月", "五官", "五彩"] },
+      "支": { pinyin: "zhī", words: ["支持", "支付", "支票"] },
+      "厅": { pinyin: "tīng", words: ["客厅", "餐厅", "大厅"] },
+      "不": { pinyin: "bù", words: ["不要", "不是", "不能"] },
+      "太": { pinyin: "tài", words: ["太阳", "太太", "太平"] },
+      "犬": { pinyin: "quǎn", words: ["警犬", "猎犬", "犬牙"] },
+      "区": { pinyin: "qū", words: ["区别", "地区", "区域"] },
+      "历": { pinyin: "lì", words: ["历史", "经历", "日历"] },
+      "尤": { pinyin: "yóu", words: ["尤其", "尤物", "效尤"] },
+      "友": { pinyin: "yǒu", words: ["朋友", "友好", "友情"] },
+      "匹": { pinyin: "pǐ", words: ["匹配", "布匹", "匹敌"] },
+      "车": { pinyin: "chē", words: ["汽车", "火车", "车站"] },
+      "巨": { pinyin: "jù", words: ["巨大", "巨人", "巨星"] },
+      "牙": { pinyin: "yá", words: ["牙齿", "牙刷", "牙膏"] },
+      "屯": { pinyin: "tún", words: ["屯子", "屯粮", "屯兵"] },
+      "比": { pinyin: "bǐ", words: ["比较", "比赛", "比例"] },
+      "互": { pinyin: "hù", words: ["互相", "互助", "互补"] },
+      "切": { pinyin: "qiē", words: ["切开", "切割", "切片"] },
+      "瓦": { pinyin: "wǎ", words: ["瓦片", "砖瓦", "瓦房"] },
+      "止": { pinyin: "zhǐ", words: ["停止", "禁止", "止痛"] },
+      "少": { pinyin: "shǎo", words: ["多少", "少数", "少年"] },
+      "日": { pinyin: "rì", words: ["日期", "日记", "日光"] },
+      "中": { pinyin: "zhōng", words: ["中国", "中心", "中间"] },
+      "冈": { pinyin: "gāng", words: ["山冈", "冈峦", "云冈"] },
+      "贝": { pinyin: "bèi", words: ["贝壳", "宝贝", "贝类"] },
+      "内": { pinyin: "nèi", words: ["内容", "内部", "国内"] },
+      "水": { pinyin: "shuǐ", words: ["水果", "水平", "水泥"] },
+      "见": { pinyin: "jiàn", words: ["见面", "看见", "见解"] },
+      "午": { pinyin: "wǔ", words: ["中午", "午饭", "午休"] },
+      "牛": { pinyin: "niú", words: ["牛奶", "牛肉", "牛仔"] },
+      "语": { pinyin: "yǔ", words: ["语言", "语文", "语气"] },
+  "文": { pinyin: "wén", words: ["文化", "文章", "文字"] },
+  "年": { pinyin: "nián", words: ["今年", "明年", "去年"] },
+  "时": { pinyin: "shí", words: ["时间", "小时", "时时"] },
+  "光": { pinyin: "guāng", words: ["阳光", "光明", "光线"] },
+  "电": { pinyin: "diàn", words: ["电话", "电视", "电力"] },
+  "话": { pinyin: "huà", words: ["说话", "电话", "话语"] },
+  "书": { pinyin: "shū", words: ["读书", "书本", "书店"] },
+  "笔": { pinyin: "bǐ", words: ["铅笔", "毛笔", "钢笔"] },
+  "本": { pinyin: "běn", words: ["本子", "本书", "基本"] },
+  "名": { pinyin: "míng", words: ["名字", "著名", "名人"] },
+  "字": { pinyin: "zì", words: ["汉字", "写字", "拼字"] },
+  "桌": { pinyin: "zhuō", words: ["桌子", "书桌", "课桌"] },
+  "椅": { pinyin: "yǐ", words: ["椅子", "折椅", "靠椅"] },
+  "床": { pinyin: "chuáng", words: ["床单", "上床", "床头"] },
+  "窗": { pinyin: "chuāng", words: ["窗户", "窗台", "窗帘"] },
+  "户": { pinyin: "hù", words: ["门户", "住户", "用户"] },
+  "门": { pinyin: "mén", words: ["门口", "门票", "大门"] },
+  "校": { pinyin: "xiào", words: ["学校", "校长", "校服"] },
+  "园": { pinyin: "yuán", words: ["花园", "公园", "校园"] },
+  "林": { pinyin: "lín", words: ["树林", "森林", "林地"] },
+  "果": { pinyin: "guǒ", words: ["水果", "结果", "果汁"] },
+  "菜": { pinyin: "cài", words: ["蔬菜", "白菜", "菜市场"] },
+  "肉": { pinyin: "ròu", words: ["牛肉", "猪肉", "肉类"] },
+  "蛋": { pinyin: "dàn", words: ["鸡蛋", "蛋糕", "蛋白"] },
+  "米": { pinyin: "mǐ", words: ["大米", "米饭", "米粉"] },
+  "饭": { pinyin: "fàn", words: ["吃饭", "晚饭", "饭馆"] },
+  "茶": { pinyin: "chá", words: ["绿茶", "红茶", "茶叶"] },
+  "汤": { pinyin: "tāng", words: ["鸡汤", "热汤", "汤面"] },
+  "饮": { pinyin: "yǐn", words: ["饮料", "饮水", "饮食"] },
+  "酒": { pinyin: "jiǔ", words: ["啤酒", "白酒", "酒吧"] },
+  "早": { pinyin: "zǎo", words: ["早上", "早餐", "早饭"] },
+  "晚": { pinyin: "wǎn", words: ["晚上", "晚饭", "晚安"] },
+  "午": { pinyin: "wǔ", words: ["中午", "午餐", "午休"] },
+  "衣": { pinyin: "yī", words: ["衣服", "雨衣", "上衣"] },
+  "裤": { pinyin: "kù", words: ["裤子", "牛仔裤", "短裤"] },
+  "鞋": { pinyin: "xié", words: ["皮鞋", "运动鞋", "鞋子"] },
+  "帽": { pinyin: "mào", words: ["帽子", "草帽", "帽檐"] },
+  "手": { pinyin: "shǒu", words: ["手指", "手机", "手表"] },
+  "脚": { pinyin: "jiǎo", words: ["脚步", "脚印", "脚踝"] },
+  "头": { pinyin: "tóu", words: ["头发", "头痛", "头脑"] },
+  "眼": { pinyin: "yǎn", words: ["眼睛", "眼泪", "眼神"] },
+  "耳": { pinyin: "ěr", words: ["耳朵", "耳机", "耳环"] },
+  "鼻": { pinyin: "bí", words: ["鼻子", "鼻血", "鼻音"] },
+  "嘴": { pinyin: "zuǐ", words: ["嘴巴", "闭嘴", "嘴角"] },
+  "牙": { pinyin: "yá", words: ["牙齿", "牙刷", "牙膏"] },
+  "心": { pinyin: "xīn", words: ["开心", "心情", "中心"] },
+  "脑": { pinyin: "nǎo", words: ["头脑", "脑子", "脑袋"] },
+  "病": { pinyin: "bìng", words: ["生病", "病人", "疾病"] },
+  "医": { pinyin: "yī", words: ["医生", "医疗", "医药"] },
+  "药": { pinyin: "yào", words: ["药品", "吃药", "中药"] },
+  "院": { pinyin: "yuàn", words: ["医院", "法院", "公园"] },
+  "车": { pinyin: "chē", words: ["火车", "汽车", "车站"] },
+  "船": { pinyin: "chuán", words: ["轮船", "渡船", "船只"] },
+  "机": { pinyin: "jī", words: ["手机", "机器", "飞机"] },
+  "站": { pinyin: "zhàn", words: ["火车站", "车站", "站台"] },
+  "行": { pinyin: "xíng", words: ["旅行", "行走", "行人"] },
+  "走": { pinyin: "zǒu", words: ["走路", "走开", "走进"] },
+  "跑": { pinyin: "pǎo", words: ["跑步", "奔跑", "快跑"] },
+  "跳": { pinyin: "tiào", words: ["跳舞", "跳高", "跳远"] },
+  "游": { pinyin: "yóu", words: ["游泳", "旅游", "游玩"] },
+  "玩": { pinyin: "wán", words: ["玩具", "好玩", "玩耍"] },
+  "唱": { pinyin: "chàng", words: ["唱歌", "合唱", "歌唱"] },
+  "歌": { pinyin: "gē", words: ["歌曲", "唱歌", "儿歌"] },
+  "舞": { pinyin: "wǔ", words: ["跳舞", "舞蹈", "舞台"] },
+  "画": { pinyin: "huà", words: ["画画", "图画", "画家"] },
+  "图": { pinyin: "tú", words: ["图片", "图书", "地图"] },
+  "书": { pinyin: "shū", words: ["书本", "图书", "书架"] },
+  "课": { pinyin: "kè", words: ["上课", "课程", "课本"] },
+  "学": { pinyin: "xué", words: ["学生", "学习", "学校"] },
+  "生": { pinyin: "shēng", words: ["生活", "学生", "生命"] },
+  "老": { pinyin: "lǎo", words: ["老师", "老人", "老鼠"] },
+  "师": { pinyin: "shī", words: ["教师", "老师", "律师"] },
+  "朋": { pinyin: "péng", words: ["朋友", "亲朋", "朋党"] },
+  "友": { pinyin: "yǒu", words: ["好友", "朋友", "友好"] },
+  "家": { pinyin: "jiā", words: ["家庭", "回家", "家长"] },
+  "亲": { pinyin: "qīn", words: ["亲人", "亲爱", "亲属"] },
+  "爱": { pinyin: "ài", words: ["爱情", "爱心", "热爱"] },
+  "孩": { pinyin: "hái", words: ["孩子", "女孩", "男孩"] },
+  "男": { pinyin: "nán", words: ["男人", "男孩", "男生"] },
+  "女": { pinyin: "nǚ", words: ["女人", "女儿", "女生"] },
+  "爸": { pinyin: "bà", words: ["爸爸", "老爸", "爸妈"] },
+  "妈": { pinyin: "mā", words: ["妈妈", "老妈", "爸妈"] },
+  "兄": { pinyin: "xiōng", words: ["兄弟", "哥哥", "兄长"] },
+  "弟": { pinyin: "dì", words: ["弟弟", "兄弟", "小弟"] },
+  "姐": { pinyin: "jiě", words: ["姐姐", "姐妹", "大姐"] },
+  "妹": { pinyin: "mèi", words: ["妹妹", "姐妹", "小妹"] },
+  "同": { pinyin: "tóng", words: ["同学", "同事", "同样"] },
+  "工": { pinyin: "gōng", words: ["工人", "工作", "工厂"] },
+  "作": { pinyin: "zuò", words: ["工作", "作业", "作文"] },
+  "业": { pinyin: "yè", words: ["作业", "毕业", "企业"] },
+  "店": { pinyin: "diàn", words: ["商店", "饭店", "酒店"] },
+  "商": { pinyin: "shāng", words: ["商店", "商业", "商人"] },
+  "市": { pinyin: "shì", words: ["城市", "市区", "市长"] },
+  "场": { pinyin: "chǎng", words: ["市场", "操场", "广场"] },
+  "店": { pinyin: "diàn", words: ["商店", "饭店", "酒店"] },
+  "超": { pinyin: "chāo", words: ["超市", "超过", "超人"] },
+  "级": { pinyin: "jí", words: ["高级", "等级", "年级"] },
+  "国": { pinyin: "guó", words: ["国家", "中国", "国旗"] },
+  "旗": { pinyin: "qí", words: ["国旗", "红旗", "旗帜"] },
+  "白": { pinyin: "bái", words: ["白色", "明白", "白天"] },
+  "黑": { pinyin: "hēi", words: ["黑色", "黑夜", "黑板"] },
+  "红": { pinyin: "hóng", words: ["红色", "红花", "红旗"] },
+  "蓝": { pinyin: "lán", words: ["蓝色", "蓝天", "蓝图"] },
+  "绿": { pinyin: "lǜ", words: ["绿色", "绿茶", "绿叶"] },
+  "黄": { pinyin: "huáng", words: ["黄色", "黄瓜", "黄河"] },
+  "色": { pinyin: "sè", words: ["颜色", "红色", "黑色"] },
+  "天": { pinyin: "tiān", words: ["今天", "明天", "天气"] },
+  "气": { pinyin: "qì", words: ["天气", "空气", "气球"] },
+  "空": { pinyin: "kōng", words: ["天空", "空气", "空中"] },
+  "云": { pinyin: "yún", words: ["白云", "多云", "云朵"] },
+  "星": { pinyin: "xīng", words: ["星星", "明星", "星空"] },
+  "晴": { pinyin: "qíng", words: ["晴天", "放晴", "晴空"] },
+  "雨": { pinyin: "yǔ", words: ["下雨", "雨伞", "雨天"] },
+  "雪": { pinyin: "xuě", words: ["下雪", "雪人", "大雪"] },
+  "风": { pinyin: "fēng", words: ["刮风", "风景", "台风"] },
+  "雷": { pinyin: "léi", words: ["打雷", "雷声", "雷电"] },
+  "电": { pinyin: "diàn", words: ["电灯", "电视", "电话"] },
+  "灯": { pinyin: "dēng", words: ["灯光", "电灯", "红灯"] },
+  "光": { pinyin: "guāng", words: ["阳光", "光线", "光明"] },
+  "明": { pinyin: "míng", words: ["明天", "明亮", "聪明"] },
+  "亮": { pinyin: "liàng", words: ["明亮", "灯亮", "亮光"] },
+  "早": { pinyin: "zǎo", words: ["早上", "早饭", "早起"] },
+  "晚": { pinyin: "wǎn", words: ["晚上", "晚饭", "早晚"] },
+  "安": { pinyin: "ān", words: ["平安", "安静", "安全"] },
+  "静": { pinyin: "jìng", words: ["安静", "宁静", "静止"] },
+  "热": { pinyin: "rè", words: ["热水", "热情", "发热"] },
+  "冷": { pinyin: "lěng", words: ["冷水", "寒冷", "冷静"] },
+  "高": { pinyin: "gāo", words: ["高山", "高级", "高兴"] },
+  "兴": { pinyin: "xìng", words: ["高兴", "兴奋", "兴起"] },
+  "快": { pinyin: "kuài", words: ["快乐", "快速", "赶快"] },
+  "乐": { pinyin: "lè", words: ["快乐", "音乐", "欢乐"] },
+  "慢": { pinyin: "màn", words: ["慢走", "缓慢", "慢车"] },
+  "新": { pinyin: "xīn", words: ["新年", "新闻", "新鲜"] },
+  "旧": { pinyin: "jiù", words: ["旧衣", "老旧", "旧书"] },
+  "好": { pinyin: "hǎo", words: ["好人", "很好", "友好"] },
+  "坏": { pinyin: "huài", words: ["坏人", "坏事", "损坏"] },
+  "长": { pinyin: "cháng", words: ["长大", "长短", "长城"] },
+  "短": { pinyin: "duǎn", words: ["短裤", "短发", "短文"] },
+  "多": { pinyin: "duō", words: ["多少", "多么", "多次"] },
+  "少": { pinyin: "shǎo", words: ["很少", "减少", "少数"] },
+  "强": { pinyin: "qiáng", words: ["坚强", "强大", "加强"] },
+  "弱": { pinyin: "ruò", words: ["虚弱", "强弱", "软弱"] },
+  "胖": { pinyin: "pàng", words: ["胖子", "变胖", "肥胖"] },
+  "瘦": { pinyin: "shòu", words: ["瘦弱", "变瘦", "瘦小"] },
+  "黑": { pinyin: "hēi", words: ["黑色", "黑暗", "黑板"] },
+  "白": { pinyin: "bái", words: ["白色", "明白", "白天"] },
+  "蓝": { pinyin: "lán", words: ["蓝色", "蓝天", "蓝图"] },
+  "黄": { pinyin: "huáng", words: ["黄色", "黄瓜", "黄河"] },
+  "绿": { pinyin: "lǜ", words: ["绿色", "绿茶", "绿叶"] },
+  "红": { pinyin: "hóng", words: ["红色", "红旗", "红花"] },
+  "彩": { pinyin: "cǎi", words: ["彩虹", "精彩", "色彩"] },
+  "风": { pinyin: "fēng", words: ["大风", "微风", "风速"] },
+  "雨": { pinyin: "yǔ", words: ["小雨", "暴雨", "雷雨"] },
+  "雪": { pinyin: "xuě", words: ["雪人", "大雪", "雪花"] },
+  "冰": { pinyin: "bīng", words: ["冰箱", "冰水", "结冰"] },
+  "火": { pinyin: "huǒ", words: ["火车", "火山", "火焰"] },
+  "山": { pinyin: "shān", words: ["高山", "山峰", "爬山"] },
+  "海": { pinyin: "hǎi", words: ["大海", "上海", "海洋"] },
+  "河": { pinyin: "hé", words: ["黄河", "河水", "河边"] },
+  "湖": { pinyin: "hú", words: ["湖水", "湖泊", "西湖"] },
+  "田": { pinyin: "tián", words: ["农田", "田地", "田园"] },
+  "地": { pinyin: "dì", words: ["土地", "地球", "地图"] },
+  "土": { pinyin: "tǔ", words: ["土豆", "土壤", "本土"] },
+  "草": { pinyin: "cǎo", words: ["青草", "草地", "草原"] },
+  "木": { pinyin: "mù", words: ["树木", "木头", "木材"] },
+  "林": { pinyin: "lín", words: ["树林", "森林", "林业"] },
+  "花": { pinyin: "huā", words: ["花朵", "花园", "花草"] },
+  "叶": { pinyin: "yè", words: ["树叶", "叶子", "绿叶"] },
+  "根": { pinyin: "gēn", words: ["树根", "根本", "根源"] },
+  "竹": { pinyin: "zhú", words: ["竹子", "竹林", "竹筷"] },
+  "石": { pinyin: "shí", words: ["石头", "石油", "石桥"] },
+  "金": { pinyin: "jīn", words: ["黄金", "金属", "金子"] },
+  "银": { pinyin: "yín", words: ["白银", "银行", "银子"] },
+  "铜": { pinyin: "tóng", words: ["铜钱", "铜牌", "铜像"] },
+  "铁": { pinyin: "tiě", words: ["地铁", "铁道", "铁人"] },
+  "山": { pinyin: "shān", words: ["高山", "山路", "山村"] },
+  "川": { pinyin: "chuān", words: ["河川", "四川", "山川"] },
+  "谷": { pinyin: "gǔ", words: ["山谷", "谷物", "谷底"] },
+  "石": { pinyin: "shí", words: ["石头", "石块", "石桥"] },
+  "泉": { pinyin: "quán", words: ["温泉", "泉水", "山泉"] },
+  "洞": { pinyin: "dòng", words: ["山洞", "洞穴", "石洞"] },
+  "岛": { pinyin: "dǎo", words: ["小岛", "岛屿", "孤岛"] },
+  "桥": { pinyin: "qiáo", words: ["大桥", "石桥", "桥头"] },
+  "路": { pinyin: "lù", words: ["马路", "道路", "公路"] },
+  "街": { pinyin: "jiē", words: ["街道", "上街", "街头"] },
+  "城": { pinyin: "chéng", words: ["城市", "长城", "古城"] },
+  "区": { pinyin: "qū", words: ["城区", "社区", "地区"] },
+  "县": { pinyin: "xiàn", words: ["县城", "县长", "县政府"] },
+  "省": { pinyin: "shěng", words: ["省份", "省会", "节省"] },
+  "国": { pinyin: "guó", words: ["国家", "国旗", "国王"] },
+  "京": { pinyin: "jīng", words: ["北京", "东京", "京剧"] },
+  "广": { pinyin: "guǎng", words: ["广州", "广场", "广播"] },
+  "上": { pinyin: "shàng", words: ["上海", "上课", "上面"] },
+  "东": { pinyin: "dōng", words: ["东方", "东边", "东海"] },
+  "南": { pinyin: "nán", words: ["南方", "湖南", "南边"] },
+  "西": { pinyin: "xī", words: ["西方", "西部", "东西"] },
+  "北": { pinyin: "běi", words: ["北方", "东北", "北京"] },
+  "边": { pinyin: "biān", words: ["旁边", "一边", "边界"] },
+  "面": { pinyin: "miàn", words: ["前面", "面包", "表面"] },
+  "前": { pinyin: "qián", words: ["前面", "从前", "前进"] },
+  "后": { pinyin: "hòu", words: ["后面", "然后", "最后"] },
+  "左": { pinyin: "zuǒ", words: ["左边", "左右", "左手"] },
+  "右": { pinyin: "yòu", words: ["右边", "左右", "右手"] },
+  "中": { pinyin: "zhōng", words: ["中间", "中国", "中心"] },
+  "外": { pinyin: "wài", words: ["外面", "外国", "外语"] },
+  "内": { pinyin: "nèi", words: ["内容", "内心", "国内"] },
+  "方": { pinyin: "fāng", words: ["方向", "东方", "地方"] },
+  "正": { pinyin: "zhèng", words: ["正在", "正好", "正确"] },
+  "对": { pinyin: "duì", words: ["对话", "正确", "对面"] },
+  "错": { pinyin: "cuò", words: ["错误", "弄错", "错字"] },
+  "是": { pinyin: "shì", words: ["是不是", "是非", "也是"] },
+  "非": { pinyin: "fēi", words: ["非常", "是非", "非法"] },
+  "有": { pinyin: "yǒu", words: ["有名", "有没有", "拥有"] },
+  "无": { pinyin: "wú", words: ["无聊", "无数", "无法"] },
+  "在": { pinyin: "zài", words: ["现在", "正在", "存在"] },
+  "不": { pinyin: "bù", words: ["不是", "不要", "不会"] },
+  "能": { pinyin: "néng", words: ["可能", "能力", "不能"] },
+  "会": { pinyin: "huì", words: ["会议", "不会", "学会"] },
+  "要": { pinyin: "yào", words: ["想要", "需要", "重要"] },
+  "想": { pinyin: "xiǎng", words: ["思想", "想法", "梦想"] },
+  "知": { pinyin: "zhī", words: ["知道", "知识", "知名"] },
+  "道": { pinyin: "dào", words: ["知道", "道理", "道德"] },
+  "觉": { pinyin: "jué", words: ["觉得", "感觉", "睡觉"] },
+  "得": { pinyin: "dé", words: ["得到", "觉得", "得意"] },
+  "可": { pinyin: "kě", words: ["可以", "可是", "可爱"] },
+  "以": { pinyin: "yǐ", words: ["可以", "以后", "所以"] },
+  "为": { pinyin: "wéi", words: ["认为", "为了", "成为"] },
+  "然": { pinyin: "rán", words: ["当然", "虽然", "然后"] },
+  "而": { pinyin: "ér", words: ["然而", "而且", "而是"] },
+  "且": { pinyin: "qiě", words: ["而且", "并且", "尚且"] },
+  "但": { pinyin: "dàn", words: ["但是", "不过", "但愿"] },
+  "却": { pinyin: "què", words: ["却是", "然而", "退却"] },
+  "因": { pinyin: "yīn", words: ["因为", "原因", "因而"] },
+  "为": { pinyin: "wèi", words: ["因为", "为何", "为何"] },
+  "所": { pinyin: "suǒ", words: ["所以", "住所", "场所"] },
+  "这": { pinyin: "zhè", words: ["这个", "这样", "这里"] },
+  "那": { pinyin: "nà", words: ["那个", "那么", "那里"] },
+  "哪": { pinyin: "nǎ", words: ["哪儿", "哪一个", "哪里"] },
+  "谁": { pinyin: "shéi", words: ["是谁", "谁的", "谁在"] },
+  "什": { pinyin: "shén", words: ["什么", "为什么", "什么人"] },
+  "么": { pinyin: "me", words: ["怎么", "什么", "多么"] },
+  "哪": { pinyin: "nǎ", words: ["哪个", "哪里", "哪一"] },
+  "怎": { pinyin: "zěn", words: ["怎么", "怎样", "怎么做"] },
+  "样": { pinyin: "yàng", words: ["一样", "怎样", "样子"] },
+  "时": { pinyin: "shí", words: ["时间", "小时", "时光"] },
+  "间": { pinyin: "jiān", words: ["时间", "房间", "之间"] },
+  "年": { pinyin: "nián", words: ["今年", "去年", "明年"] },
+  "月": { pinyin: "yuè", words: ["月亮", "每月", "月光"] },
+  "日": { pinyin: "rì", words: ["日子", "生日", "日记"] },
+  "星": { pinyin: "xīng", words: ["星期", "星星", "明星"] },
+  "期": { pinyin: "qī", words: ["星期", "学期", "时期"] },
+  "晨": { pinyin: "chén", words: ["早晨", "清晨", "晨光"] },
+  "晚": { pinyin: "wǎn", words: ["晚上", "晚安", "晚饭"] },
+  "今": { pinyin: "jīn", words: ["今天", "今年", "今后"] },
+  "昨": { pinyin: "zuó", words: ["昨天", "昨晚", "昨日"] },
+  "明": { pinyin: "míng", words: ["明天", "明年", "明亮"] },
+  "后": { pinyin: "hòu", words: ["后天", "以后", "后来"] },
+  "前": { pinyin: "qián", words: ["前天", "从前", "前面"] },
+  "早": { pinyin: "zǎo", words: ["早上", "早饭", "早安"] },
+  "午": { pinyin: "wǔ", words: ["上午", "中午", "午饭"] },
+  "晚": { pinyin: "wǎn", words: ["晚上", "晚会", "晚安"] },
+  "钟": { pinyin: "zhōng", words: ["钟表", "钟点", "闹钟"] },
+  "点": { pinyin: "diǎn", words: ["几点", "点心", "点头"] },
+  "分": { pinyin: "fēn", words: ["分钟", "分别", "分开"] },
+  "秒": { pinyin: "miǎo", words: ["秒钟", "分秒", "千分秒"] },
+  "正": { pinyin: "zhèng", words: ["正好", "正在", "正点"] },
+  "晚": { pinyin: "wǎn", words: ["晚安", "晚饭", "晚会"] },
+  "夜": { pinyin: "yè", words: ["夜晚", "今夜", "深夜"] },
+  "晨": { pinyin: "chén", words: ["早晨", "清晨", "晨曦"] },
+  "光": { pinyin: "guāng", words: ["阳光", "光明", "灯光"] },
+  "暗": { pinyin: "àn", words: ["黑暗", "暗示", "明暗"] },
+  "影": { pinyin: "yǐng", words: ["电影", "影子", "身影"] },
+  "电": { pinyin: "diàn", words: ["电视", "电话", "电力"] },
+  "视": { pinyin: "shì", words: ["电视", "视力", "视线"] },
+  "影": { pinyin: "yǐng", words: ["电影", "摄影", "影像"] },
+  "声": { pinyin: "shēng", words: ["声音", "声调", "声响"] },
+  "响": { pinyin: "xiǎng", words: ["声音", "影响", "响声"] },
+  "响": { pinyin: "xiǎng", words: ["响亮", "回响", "响应"] },
+  "歌": { pinyin: "gē", words: ["唱歌", "歌曲", "歌声"] },
+  "唱": { pinyin: "chàng", words: ["唱歌", "唱戏", "合唱"] },
+  "跳": { pinyin: "tiào", words: ["跳舞", "跳高", "跳远"] },
+  "舞": { pinyin: "wǔ", words: ["舞蹈", "跳舞", "舞台"] },
+  "乐": { pinyin: "yuè", words: ["音乐", "乐器", "乐队"] },
+  "器": { pinyin: "qì", words: ["乐器", "器官", "器材"] },
+  "队": { pinyin: "duì", words: ["队伍", "队长", "乐队"] },
+  "员": { pinyin: "yuán", words: ["成员", "员工", "队员"] },
+  "工": { pinyin: "gōng", words: ["工人", "工程", "工作"] },
+  "作": { pinyin: "zuò", words: ["作业", "工作", "作家"] },
+  "学": { pinyin: "xué", words: ["学生", "学习", "学校"] },
+  "校": { pinyin: "xiào", words: ["学校", "校长", "校友"] },
+  "长": { pinyin: "zhǎng", words: ["校长", "组长", "部长"] },
+  "生": { pinyin: "shēng", words: ["学生", "出生", "生活"] },
+  "教": { pinyin: "jiào", words: ["教学", "教室", "教师"] },
+  "育": { pinyin: "yù", words: ["教育", "体育", "育儿"] },
+  "育": { pinyin: "yù", words: ["体育", "育人", "德育"] },
+  "体": { pinyin: "tǐ", words: ["体育", "身体", "体力"] },
+  "育": { pinyin: "yù", words: ["体育", "育儿", "育成"] },
+  "力": { pinyin: "lì", words: ["力量", "努力", "体力"] },
+  "气": { pinyin: "qì", words: ["空气", "气功", "生气"] },
+  "功": { pinyin: "gōng", words: ["成功", "功夫", "功课"] },
+  "课": { pinyin: "kè", words: ["上课", "功课", "课本"] },
+  "本": { pinyin: "běn", words: ["本子", "课本", "基本"] },
+  "笔": { pinyin: "bǐ", words: ["钢笔", "铅笔", "毛笔"] },
+  "书": { pinyin: "shū", words: ["书本", "图书", "读书"] },
+  "包": { pinyin: "bāo", words: ["书包", "面包", "包子"] },
+  "文": { pinyin: "wén", words: ["文化", "作文", "文具"] },
+  "字": { pinyin: "zì", words: ["汉字", "写字", "名字"] },
+  "汉": { pinyin: "hàn", words: ["汉字", "汉语", "汉人"] },
+  "语": { pinyin: "yǔ", words: ["语言", "语文", "语气"] },
+  "言": { pinyin: "yán", words: ["语言", "发言", "言语"] },
+  "语": { pinyin: "yǔ", words: ["外语", "语法", "语音"] },
+  "音": { pinyin: "yīn", words: ["声音", "音调", "音响"] },
+  "听": { pinyin: "tīng", words: ["听说", "听见", "听课"] },
+  "说": { pinyin: "shuō", words: ["说话", "听说", "小说"] },
+  "话": { pinyin: "huà", words: ["电话", "话语", "对话"] },
+  "读": { pinyin: "dú", words: ["读书", "阅读", "朗读"] },
+  "写": { pinyin: "xiě", words: ["写字", "写信", "书写"] },
+  "画": { pinyin: "huà", words: ["画画", "画家", "图画"] },
+  "图": { pinyin: "tú", words: ["图书", "地图", "图画"] },
+  "表": { pinyin: "biǎo", words: ["手表", "表情", "表达"] },
+  "现": { pinyin: "xiàn", words: ["现在", "发现", "出现"] },
+  "示": { pinyin: "shì", words: ["表示", "显示", "示范"] },
+  "电": { pinyin: "diàn", words: ["电话", "电视", "电灯"] },
+  "视": { pinyin: "shì", words: ["电视", "视力", "视角"] },
+  "脑": { pinyin: "nǎo", words: ["电脑", "头脑", "脑子"] },
+  "机": { pinyin: "jī", words: ["机器", "手机", "飞机"] },
+  "算": { pinyin: "suàn", words: ["计算", "打算", "算盘"] },
+  "数": { pinyin: "shù", words: ["数学", "数字", "数目"] },
+  "学": { pinyin: "xué", words: ["数学", "学习", "学生"] },
+  "理": { pinyin: "lǐ", words: ["道理", "物理", "理解"] },
+  "化": { pinyin: "huà", words: ["文化", "化学", "变化"] },
+  "科": { pinyin: "kē", words: ["科学", "科目", "医生"] },
+  "学": { pinyin: "xué", words: ["科学", "学科", "学习"] },
+  "文": { pinyin: "wén", words: ["语文", "文化", "文具"] },
+  "具": { pinyin: "jù", words: ["工具", "玩具", "文具"] },
+  "刀": { pinyin: "dāo", words: ["剪刀", "小刀", "刀具"] },
+  "尺": { pinyin: "chǐ", words: ["尺子", "量尺", "公尺"] },
+  "本": { pinyin: "běn", words: ["本子", "课本", "笔记本"] },
+  "纸": { pinyin: "zhǐ", words: ["白纸", "纸张", "纸巾"] },
+  "信": { pinyin: "xìn", words: ["信件", "写信", "相信"] },
+  "封": { pinyin: "fēng", words: ["信封", "封面", "密封"] },
+  "邮": { pinyin: "yóu", words: ["邮票", "邮局", "邮递"] },
+  "票": { pinyin: "piào", words: ["车票", "电影票", "门票"] },
+  "件": { pinyin: "jiàn", words: ["文件", "信件", "衣件"] },
+  "箱": { pinyin: "xiāng", words: ["邮箱", "信箱", "箱子"] },
+  "包": { pinyin: "bāo", words: ["包裹", "书包", "面包"] },
+  "装": { pinyin: "zhuāng", words: ["包装", "服装", "化装"] },
+  "带": { pinyin: "dài", words: ["带子", "携带", "腰带"] },
+  "放": { pinyin: "fàng", words: ["放学", "释放", "放下"] },
+  "收": { pinyin: "shōu", words: ["收信", "收集", "接受"] },
+  "拾": { pinyin: "shí", words: ["拾起", "拾到", "拾取"] },
+  "扔": { pinyin: "rēng", words: ["扔掉", "乱扔", "扔东西"] },
+  "丢": { pinyin: "diū", words: ["丢失", "丢人", "丢掉"] },
+  "拉": { pinyin: "lā", words: ["拉手", "拉开", "拉车"] },
+  "推": { pinyin: "tuī", words: ["推动", "推门", "推荐"] },
+  "抱": { pinyin: "bào", words: ["拥抱", "抱起", "抱住"] },
+  "搬": { pinyin: "bān", words: ["搬家", "搬动", "搬东西"] },
+  "提": { pinyin: "tí", words: ["提问", "提起", "提出"] },
+  "拿": { pinyin: "ná", words: ["拿起", "拿手", "拿走"] },
+  "举": { pinyin: "jǔ", words: ["举手", "举例", "举起"] },
+  "抱": { pinyin: "bào", words: ["抱住", "抱歉", "抱怨"] },
+  "放": { pinyin: "fàng", words: ["放下", "放开", "放松"] },
+  "打": { pinyin: "dǎ", words: ["打电话", "打人", "打字"] },
+  "打": { pinyin: "dǎ", words: ["打电话", "打球", "打字"] },
+  "击": { pinyin: "jī", words: ["攻击", "打击", "击中"] },
+  "拍": { pinyin: "pāi", words: ["拍手", "拍照", "拍打"] },
+  "按": { pinyin: "àn", words: ["按时", "按住", "按键"] },
+  "敲": { pinyin: "qiāo", words: ["敲门", "敲打", "敲响"] },
+  "抓": { pinyin: "zhuā", words: ["抓住", "抓紧", "抓人"] },
+  "接": { pinyin: "jiē", words: ["接住", "接电话", "接人"] },
+  "打": { pinyin: "dǎ", words: ["打电话", "打工", "打扫"] },
+  "扫": { pinyin: "sǎo", words: ["打扫", "扫地", "扫除"] },
+  "清": { pinyin: "qīng", words: ["清理", "清楚", "清扫"] },
+  "洗": { pinyin: "xǐ", words: ["洗衣", "洗手", "洗澡"] },
+  "擦": { pinyin: "cā", words: ["擦干", "擦脸", "擦桌子"] },
+  "拖": { pinyin: "tuō", words: ["拖地", "拖延", "拖鞋"] },
+  "倒": { pinyin: "dào", words: ["倒水", "倒下", "倾倒"] },
+  "搬": { pinyin: "bān", words: ["搬家", "搬动", "搬桌"] },
+  "修": { pinyin: "xiū", words: ["修理", "修车", "维修"] },
+  "理": { pinyin: "lǐ", words: ["整理", "管理", "修理"] },
+  "整": { pinyin: "zhěng", words: ["整齐", "整洁", "整理"] },
+  "齐": { pinyin: "qí", words: ["整齐", "齐心", "齐全"] },
+  "脏": { pinyin: "zāng", words: ["肮脏", "脏话", "脏衣服"] },
+  "净": { pinyin: "jìng", words: ["干净", "清净", "净水"] },
+  "干": { pinyin: "gān", words: ["干净", "干活", "干杯"] },
+  "湿": { pinyin: "shī", words: ["潮湿", "湿润", "湿衣"] },
+  "热": { pinyin: "rè", words: ["热水", "发热", "炎热"] },
+  "冷": { pinyin: "lěng", words: ["冷水", "寒冷", "冷气"] },
+  "温": { pinyin: "wēn", words: ["温暖", "温度", "气温"] },
+  "暖": { pinyin: "nuǎn", words: ["温暖", "暖气", "暖和"] },
+  "凉": { pinyin: "liáng", words: ["凉快", "清凉", "凉水"] },
+  "冻": { pinyin: "dòng", words: ["冰冻", "冷冻", "冻住"] },
+  "烧": { pinyin: "shāo", words: ["烧水", "发烧", "燃烧"] },
+  "烫": { pinyin: "tàng", words: ["烫伤", "热烫", "烫手"] },
+  "煮": { pinyin: "zhǔ", words: ["煮饭", "煮水", "煮面"] },
+  "炒": { pinyin: "chǎo", words: ["炒菜", "炒饭", "爆炒"] },
+  "炸": { pinyin: "zhà", words: ["油炸", "炸鸡", "爆炸"] },
+  "煎": { pinyin: "jiān", words: ["煎蛋", "煎饼", "煎药"] },
+  "烤": { pinyin: "kǎo", words: ["烤肉", "烧烤", "烤箱"] },
+  "炖": { pinyin: "dùn", words: ["炖汤", "清炖", "慢炖"] },
+  "蒸": { pinyin: "zhēng", words: ["蒸饭", "清蒸", "蒸汽"] },
+  "饭": { pinyin: "fàn", words: ["米饭", "炒饭", "饭店"] },
+  "菜": { pinyin: "cài", words: ["青菜", "炒菜", "凉菜"] },
+  "汤": { pinyin: "tāng", words: ["鸡汤", "热汤", "汤面"] },
+  "肉": { pinyin: "ròu", words: ["猪肉", "牛肉", "肉汤"] },
+  "鸡": { pinyin: "jī", words: ["鸡蛋", "鸡肉", "小鸡"] },
+  "鸭": { pinyin: "yā", words: ["鸭子", "烤鸭", "鸭肉"] },
+  "鱼": { pinyin: "yú", words: ["鱼肉", "鱼汤", "钓鱼"] },
+  "蛋": { pinyin: "dàn", words: ["鸡蛋", "蛋糕", "蛋黄"] },
+  "面": { pinyin: "miàn", words: ["面条", "面粉", "面包"] },
+  "条": { pinyin: "tiáo", words: ["面条", "条纹", "一条"] },
+  "米": { pinyin: "mǐ", words: ["米饭", "大米", "米粉"] },
+  "粉": { pinyin: "fěn", words: ["面粉", "米粉", "粉红"] },
+  "油": { pinyin: "yóu", words: ["食用油", "油炸", "汽油"] },
+  "盐": { pinyin: "yán", words: ["食盐", "盐巴", "盐水"] },
+  "糖": { pinyin: "táng", words: ["白糖", "糖果", "糖水"] },
+  "醋": { pinyin: "cù", words: ["米醋", "醋意", "醋瓶"] },
+  "酱": { pinyin: "jiàng", words: ["酱油", "辣酱", "豆酱"] },
+  "茶": { pinyin: "chá", words: ["绿茶", "茶叶", "茶杯"] },
+  "水": { pinyin: "shuǐ", words: ["水壶", "水杯", "水瓶"] },
+  "酒": { pinyin: "jiǔ", words: ["红酒", "白酒", "喝酒"] },
+  "杯": { pinyin: "bēi", words: ["杯子", "茶杯", "水杯"] },
+  "壶": { pinyin: "hú", words: ["水壶", "茶壶", "壶盖"] },
+  "瓶": { pinyin: "píng", words: ["水瓶", "酒瓶", "瓶子"] },
+  "碗": { pinyin: "wǎn", words: ["饭碗", "碗里", "一碗"] },
+  "筷": { pinyin: "kuài", words: ["筷子", "木筷", "双筷"] },
+  "勺": { pinyin: "sháo", words: ["汤勺", "小勺", "勺子"] },
+  "盘": { pinyin: "pán", words: ["盘子", "菜盘", "盘装"] },
+  "桌": { pinyin: "zhuō", words: ["桌子", "饭桌", "书桌"] },
+  "椅": { pinyin: "yǐ", words: ["椅子", "座椅", "靠椅"] },
+  "坐": { pinyin: "zuò", words: ["坐下", "坐车", "坐椅"] },
+  "站": { pinyin: "zhàn", words: ["站起来", "车站", "火车站"] },
+  "躺": { pinyin: "tǎng", words: ["躺下", "躺椅", "躺着"] },
+  "靠": { pinyin: "kào", words: ["靠近", "靠椅", "靠背"] },
+  "背": { pinyin: "bèi", words: ["靠背", "背后", "背书"] },
+  "床": { pinyin: "chuáng", words: ["床上", "床单", "起床"] },
+  "单": { pinyin: "dān", words: ["床单", "菜单", "简单"] },
+  "被": { pinyin: "bèi", words: ["被子", "毛被", "棉被"] },
+  "枕": { pinyin: "zhěn", words: ["枕头", "抱枕", "靠枕"] },
+  "头": { pinyin: "tóu", words: ["头发", "头疼", "回头"] },
+  "睡": { pinyin: "shuì", words: ["睡觉", "午睡", "睡着"] },
+  "醒": { pinyin: "xǐng", words: ["醒来", "惊醒", "叫醒"] },
+  "起": { pinyin: "qǐ", words: ["起床", "起来", "想起"] },
+  "躺": { pinyin: "tǎng", words: ["躺下", "躺椅", "平躺"] },
+  "盖": { pinyin: "gài", words: ["盖被", "盖房", "覆盖"] },
+  "换": { pinyin: "huàn", words: ["换衣", "更换", "换床单"] },
+  "洗": { pinyin: "xǐ", words: ["洗脸", "洗衣", "洗澡"] },
+  "澡": { pinyin: "zǎo", words: ["洗澡", "淋澡", "泡澡"] },
+  "浴": { pinyin: "yù", words: ["沐浴", "浴室", "浴缸"] },
+  "室": { pinyin: "shì", words: ["教室", "浴室", "卧室"] },
+  "厅": { pinyin: "tīng", words: ["客厅", "大厅", "餐厅"] },
+  "家": { pinyin: "jiā", words: ["家庭", "家人", "回家"] },
+  "客": { pinyin: "kè", words: ["客人", "客厅", "请客"] },
+  "厅": { pinyin: "tīng", words: ["客厅", "大厅", "餐厅"] },
+  "餐": { pinyin: "cān", words: ["早餐", "餐厅", "午餐"] },
+  "饭": { pinyin: "fàn", words: ["饭菜", "饭馆", "饭桌"] },
+  "厨": { pinyin: "chú", words: ["厨房", "厨师", "厨具"] },
+  "房": { pinyin: "fáng", words: ["厨房", "房间", "房子"] },
+  "间": { pinyin: "jiān", words: ["房间", "时间", "中间"] },
+  "卧": { pinyin: "wò", words: ["卧室", "卧床", "卧铺"] },
+  "床": { pinyin: "chuáng", words: ["床上", "床单", "起床"] },
+  "桌": { pinyin: "zhuō", words: ["桌子", "饭桌", "书桌"] },
+  "椅": { pinyin: "yǐ", words: ["椅子", "座椅", "靠椅"] },
+  "灯": { pinyin: "dēng", words: ["电灯", "灯光", "台灯"] },
+  "窗": { pinyin: "chuāng", words: ["窗户", "窗帘", "窗台"] },
+  "帘": { pinyin: "lián", words: ["窗帘", "门帘", "帘子"] },
+  "门": { pinyin: "mén", words: ["门口", "开门", "关门"] },
+  "墙": { pinyin: "qiáng", words: ["墙壁", "围墙", "墙上"] },
+  "地": { pinyin: "dì", words: ["地板", "地下", "地面"] },
+  "板": { pinyin: "bǎn", words: ["地板", "木板", "黑板"] },
+  "屋": { pinyin: "wū", words: ["屋子", "房屋", "屋顶"] },
+  "顶": { pinyin: "dǐng", words: ["屋顶", "山顶", "头顶"] },
+  "楼": { pinyin: "lóu", words: ["楼上", "高楼", "楼房"] },
+  "层": { pinyin: "céng", words: ["楼层", "一层", "多层"] },
+  "电": { pinyin: "diàn", words: ["电梯", "电灯", "电线"] },
+  "梯": { pinyin: "tī", words: ["电梯", "梯子", "楼梯"] },
+  "院": { pinyin: "yuàn", words: ["医院", "院子", "公园"] },
+  "园": { pinyin: "yuán", words: ["花园", "公园", "校园"] },
+  "草": { pinyin: "cǎo", words: ["草地", "青草", "草原"] },
+  "树": { pinyin: "shù", words: ["树木", "大树", "树叶"] },
+  "花": { pinyin: "huā", words: ["花园", "鲜花", "花朵"] },
+  "木": { pinyin: "mù", words: ["树木", "木头", "木材"] },
+  "竹": { pinyin: "zhú", words: ["竹子", "竹林", "竹筷"] },
+  "石": { pinyin: "shí", words: ["石头", "石子", "石碑"] },
+  "沙": { pinyin: "shā", words: ["沙子", "沙滩", "沙发"] },
+  "滩": { pinyin: "tān", words: ["沙滩", "海滩", "河滩"] },
+  "海": { pinyin: "hǎi", words: ["大海", "海水", "上海"] },
+  "湖": { pinyin: "hú", words: ["湖泊", "西湖", "湖水"] },
+  "河": { pinyin: "hé", words: ["黄河", "河水", "小河"] },
+  "江": { pinyin: "jiāng", words: ["长江", "江河", "江水"] },
+  "泉": { pinyin: "quán", words: ["泉水", "温泉", "山泉"] },
+  "井": { pinyin: "jǐng", words: ["水井", "油井", "井口"] },
+  "山": { pinyin: "shān", words: ["高山", "山峰", "山路"] },
+  "峰": { pinyin: "fēng", words: ["山峰", "高峰", "峰会"] },
+  "洞": { pinyin: "dòng", words: ["山洞", "洞口", "石洞"] },
+  "岛": { pinyin: "dǎo", words: ["小岛", "岛屿", "海岛"] },
+  "岸": { pinyin: "àn", words: ["河岸", "海岸", "岸边"] },
+  "桥": { pinyin: "qiáo", words: ["大桥", "过桥", "桥头"] },
+  "路": { pinyin: "lù", words: ["马路", "道路", "路口"] },
+  "街": { pinyin: "jiē", words: ["街道", "大街", "上街"] },
+  "巷": { pinyin: "xiàng", words: ["巷子", "小巷", "胡同巷"] },
+  "道": { pinyin: "dào", words: ["道理", "知道", "道路"] },
+  "车": { pinyin: "chē", words: ["汽车", "火车", "车站"] },
+  "站": { pinyin: "zhàn", words: ["车站", "火车站", "站台"] },
+  "火": { pinyin: "huǒ", words: ["火车", "火山", "失火"] },
+  "汽": { pinyin: "qì", words: ["汽车", "蒸汽", "煤气"] },
+  "船": { pinyin: "chuán", words: ["轮船", "船只", "划船"] },
+  "飞": { pinyin: "fēi", words: ["飞机", "飞行", "起飞"] },
+  "机": { pinyin: "jī", words: ["机器", "飞机", "手机"] },
+  "票": { pinyin: "piào", words: ["车票", "电影票", "门票"] },
+  "航": { pinyin: "háng", words: ["航班", "航空", "导航"] },
+  "班": { pinyin: "bān", words: ["上班", "班级", "航班"] },
+  "旅": { pinyin: "lǚ", words: ["旅游", "旅馆", "旅客"] },
+  "游": { pinyin: "yóu", words: ["旅游", "游玩", "游泳"] },
+  "宿": { pinyin: "sù", words: ["宿舍", "住宿", "夜宿"] },
+  "舍": { pinyin: "shè", words: ["宿舍", "书舍", "公舍"] },
+  "馆": { pinyin: "guǎn", words: ["图书馆", "旅馆", "饭馆"] },
+  "宾": { pinyin: "bīn", words: ["宾馆", "来宾", "宾客"] },
+  "迎": { pinyin: "yíng", words: ["欢迎", "迎接", "迎面"] },
+  "接": { pinyin: "jiē", words: ["接待", "接客", "接送"] },
+  "送": { pinyin: "sòng", words: ["送别", "送人", "送礼"] },
+  "行": { pinyin: "xíng", words: ["旅行", "行走", "进行"] },
+  "走": { pinyin: "zǒu", words: ["走路", "走开", "走进"] },
+  "跑": { pinyin: "pǎo", words: ["跑步", "奔跑", "快跑"] },
+  "追": { pinyin: "zhuī", words: ["追赶", "追求", "追上"] },
+  "赶": { pinyin: "gǎn", words: ["赶快", "赶上", "赶车"] },
+  "跳": { pinyin: "tiào", words: ["跳高", "跳舞", "跳远"] },
+  "爬": { pinyin: "pá", words: ["爬山", "爬楼", "爬虫"] }
+
+         };
+
+    // 优化后的朗读功能
+    function speak(text, delay = 0) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          if (!text) return resolve();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'zh-CN';
+          utterance.rate = 0.9;
+          utterance.onend = resolve;
+          speechSynthesis.speak(utterance);
+        }, delay);
+      });
+    }
+
+    async function speakWords(char) {
+      if (charData[char]) {
+        // 依次朗读：汉字 → 拼音 → 三个例词
+        await speak(char);
+        await speak(charData[char].pinyin, 300);
+        await speak(charData[char].words[0], 300);
+        await speak(charData[char].words[1], 300);
+        await speak(charData[char].words[2], 300);
+      }
+    }
+
+
+    function useCustomChars() {
+      const input = document.getElementById('charInput').value.trim();
+      if (input) {
+        activeChars = [...new Set(input.split(''))];
+        score = 0;
+        missedChars = {};
+        updateScore();
+        renderMissedChars();
+      }
+    }
+
+    function resetToDefault() {
+      activeChars = [...defaultChars];
+      document.getElementById('charInput').value = '';
+      score = 0;
+      missedChars = {};
+      updateScore();
+      renderMissedChars();
+      renderActiveCharList();
+    }
+
+    function renderActiveCharList() {
+      const existing = document.getElementById("charListDisplay");
+      if (existing) existing.remove();
+
+      const container = document.createElement("div");
+      container.id = "charListDisplay";
+      container.style.position = "absolute";
+      container.style.bottom = "70px";
+      container.style.right = "10px";
+      container.style.background = "#222";
+      container.style.color = "#0ff";
+      container.style.padding = "10px 15px 15px 15px";
+      container.style.borderRadius = "8px";
+      container.style.fontSize = "20px";
+      container.style.zIndex = 1000;
+      container.style.minWidth = "200px";
+      container.style.boxShadow = "0 0 10px #0ff";
+
+      const closeBtn = document.createElement("div");
+      closeBtn.textContent = "✖";
+      closeBtn.style.position = "absolute";
+      closeBtn.style.bottom = "6px";
+      closeBtn.style.right = "10px";
+      closeBtn.style.cursor = "pointer";
+      closeBtn.style.color = "#0ff";
+      closeBtn.style.fontSize = "16px";
+      closeBtn.title = "关闭列表";
+      closeBtn.onclick = () => container.remove();
+      container.appendChild(closeBtn);
+
+      const title = document.createElement("div");
+      title.textContent = "当前汉字：";
+      title.style.marginBottom = "6px";
+      title.style.fontWeight = "bold";
+      title.style.paddingRight = "24px";
+      container.appendChild(title);
+
+      if (activeChars.length === 0) {
+        const empty = document.createElement("div");
+        empty.textContent = "(无)";
+        container.appendChild(empty);
+      } else {
+        const grid = document.createElement("div");
+        grid.style.display = "flex";
+        grid.style.flexWrap = "wrap";
+        grid.style.gap = "8px";
+
+        activeChars.forEach(char => {
+          const span = document.createElement("span");
+          span.textContent = char;
+          span.style.padding = "4px 6px";
+          span.style.background = "#333";
+          span.style.borderRadius = "4px";
+          grid.appendChild(span);
+        });
+
+        container.appendChild(grid);
+      }
+
+      document.getElementById("gameContainer").appendChild(container);
+    }
+
+    function reset() {
+      score = 0;
+      missedChars = {};
+      updateScore();
+      renderMissedChars();
+    }
+
+    function useDefaultChars() {
+      updateScore();
+      renderActiveCharList();
+    }
+
+    function updateScore() {
+      document.getElementById("scoreBoard").textContent = `分数：${score}`;
+    }
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'zh-CN';
+      speechSynthesis.speak(utterance);
+    }
+
+    function showPinyin(char) {
+      const pinyinDisplay = document.getElementById('pinyinDisplay');
+      if (charData[char]) {
+        pinyinDisplay.textContent = charData[char].pinyin;
+      } else {
+        pinyinDisplay.textContent = "?";
+      }
+      pinyinDisplay.style.opacity = 1;
+      
+      setTimeout(() => {
+        pinyinDisplay.style.opacity = 0;
+      }, 2000);
+    }
+
+    function speakWords(char) {
+      if (charData[char]) {
+        setTimeout(() => {
+          speak(charData[char].words[0]);
+        }, 1000);
+        setTimeout(() => {
+          speak(charData[char].words[1]);
+        }, 2000);
+        setTimeout(() => {
+          speak(charData[char].words[2]);
+        }, 3000);
+      }
+    }
+
+    function createFallingChar() {
+      if (activeChars.length === 0) return;
+      const char = activeChars[Math.floor(Math.random() * activeChars.length)];
+      const charElem = document.createElement('div');
+      charElem.className = 'fallingChar';
+      charElem.textContent = char;
+
+      const fallDuration = (Math.random() + 1) * 15;
+      charElem.style.animationDuration = `${fallDuration}s`;
+      charElem.style.left = `${Math.random() * (window.innerWidth - 40)}px`;
+
+      charElem.addEventListener('click', () => {
+        score++;
+        updateScore();
+        showApple(charElem.offsetLeft, charElem.offsetTop);
+        speak(char);
+        showPinyin(char);
+        speakWords(char);
+        charElem.remove();
+      });
+
+      document.getElementById('gameContainer').appendChild(charElem);
+
+      setTimeout(() => {
+        if (charElem.parentElement) {
+          charElem.remove();
+          if (char in missedChars) {
+            missedChars[char]++;
+          } else {
+            missedChars[char] = 1;
+          }
+          renderMissedChars();
+        }
+      }, fallDuration * 1000);
+    }
+
+    function renderMissedChars() {
+      const basket = document.getElementById("basket");
+      basket.innerHTML = "⬇ 生字纸篓 ⬇";
+
+      const list = document.createElement("div");
+      list.style.marginTop = "6px";
+      list.style.fontSize = "16px";
+      list.style.display = "flex";
+      list.style.flexWrap = "wrap";
+      list.style.gap = "12px";
+      list.style.justifyContent = "center";
+
+      for (const char in missedChars) {
+        const count = missedChars[char];
+        const entry = document.createElement("div");
+        entry.textContent = `${count}× ${char}`;
+        entry.style.background = "#1a1a1a";
+        entry.style.padding = "4px 8px";
+        entry.style.borderRadius = "6px";
+        entry.style.color = "#fff";
+        list.appendChild(entry);
+      }
+
+      basket.appendChild(list);
+    }
+
+    function autoResize(textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = (textarea.scrollHeight) + "px";
+    }
+
+    function showApple(x, y) {
+      const apple = document.createElement('div');
+      apple.id = 'appleReward';
+      apple.textContent = '🍎';
+      apple.style.left = `${x}px`;
+      apple.style.top = `${y}px`;
+      document.getElementById('gameContainer').appendChild(apple);
+      setTimeout(() => apple.remove(), 600);
+    }
+
+    setInterval(() => {
+      createFallingChar();
+    }, 1800);
+  </script>
+</body>
+</html>
